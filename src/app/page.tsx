@@ -4,7 +4,7 @@ import Hero from "@/components/modules/Home/Hero";
 import Meals from "@/components/modules/Home/Meals";
 import Providers from "@/components/modules/Home/Providers";
 
-export default function HomePage() {
+export default async function HomePage() {
   return (
     <div className='min-h-screen flex flex-col'>
       {/* Hero Section */}
