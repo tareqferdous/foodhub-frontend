@@ -1,4 +1,4 @@
-const API_URL = process.env.API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface ServiceOptions {
   cache?: RequestCache;
@@ -6,10 +6,10 @@ interface ServiceOptions {
 }
 
 interface GetMealsParams {
-  isFeatured?: boolean;
-  search?: string;
-  page?: string;
-  limit?: string;
+  cuisine?: string;
+  dietary?: string;
+  minPrice?: string;
+  maxPrice?: string;
 }
 
 export const mealService = {
@@ -39,13 +39,29 @@ export const mealService = {
 
       const res = await fetch(url.toString(), config);
 
+      // Check if response is ok
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
       const data = await res.json();
 
       if (data.success) {
         return { data: data, error: null };
+      } else {
+        return {
+          data: null,
+          error: { message: data.message || "Failed to fetch meals" },
+        };
       }
     } catch (err) {
-      return { data: null, error: { message: "Something Went Wrong" } };
+      console.error("Error in getMeals:", err);
+      return {
+        data: null,
+        error: {
+          message: err instanceof Error ? err.message : "Something Went Wrong",
+        },
+      };
     }
   },
 
