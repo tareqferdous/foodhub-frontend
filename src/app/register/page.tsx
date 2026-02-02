@@ -59,6 +59,9 @@ export default function RegisterPage() {
     });
   };
 
+  const session = authClient.useSession();
+  console.log(session);
+
   return (
     <div className='min-h-screen bg-gray-50  flex items-center justify-center'>
       <div className='w-full max-w-md'>
@@ -208,11 +211,6 @@ export default function RegisterPage() {
                     minLength: {
                       value: 8,
                       message: "Password must be at least 8 characters",
-                    },
-                    pattern: {
-                      value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-                      message:
-                        "Password must contain uppercase, lowercase, and number",
                     },
                   })}
                   placeholder='Create a strong password'

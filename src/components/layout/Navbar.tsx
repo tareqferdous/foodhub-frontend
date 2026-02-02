@@ -1,15 +1,32 @@
 "use client";
 
+import { authClient } from "@/lib/auth.client";
 import { ChevronDown, Menu, ShoppingCart, User, X } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
+  const session = authClient.useSession();
+
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await authClient.signOut();
+      toast.success("Logged out successfully");
+      router.push("/login");
+    } catch (error) {
+      toast.error("Logout failed");
+    }
+  };
+
   // This would come from your auth context/state management
-  const isLoggedIn = false;
+  const isLoggedIn = !!session?.data?.user;
   // Example: simulate a dynamic user role for demonstration
   const userRole: "customer" | "provider" | "admin" = isLoggedIn
     ? "customer"
@@ -109,7 +126,9 @@ export default function Navbar() {
                         </Link>
                       )}
                       <hr className='my-2' />
-                      <button className='block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-50'>
+                      <button
+                        onClick={handleLogout}
+                        className='block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-50'>
                         Logout
                       </button>
                     </div>
