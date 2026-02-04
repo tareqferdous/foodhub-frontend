@@ -1,9 +1,8 @@
-import Footer from "@/components/layout/Footer";
-import Navbar from "@/components/layout/Navbar";
+import DashboardSidebar from "@/components/layout/DashboardSidebar";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
-import "./globals.css";
+import "../../app/globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,12 +20,13 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className={inter.className}>
-        <Navbar />
-        {children}
-        <Toaster richColors position='top-right' />
-        <Footer />
+        <div className='min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-rose-50'>
+          <DashboardSidebar />
+
+          <div className='lg:ml-64'>{children}</div>
+          <Toaster richColors position='top-right' />
+        </div>
       </body>
     </html>
   );
 }
-
