@@ -29,6 +29,7 @@ export const getProviderGradient = (index: number) => {
 export default async function AllProviders() {
   const providers = await providerService.getAllProviders();
   const sampleProviders = providers?.data?.data || [];
+
   return (
     <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
       <div className='flex items-center justify-between py-10'>

@@ -27,7 +27,6 @@ export default function LoginPage() {
 
   const password = watch("password");
 
-  // Email/Password Registration
   const onSubmit = async (value: LoginFormData) => {
     const toastId = toast.loading("Logging in");
     try {
@@ -37,11 +36,24 @@ export default function LoginPage() {
         toast.error(error.message, { id: toastId });
         return;
       }
+
+      const session = await authClient.getSession();
+      const user = session?.data?.user;
+
+      const firstLogin =
+        user &&
+        new Date(user.createdAt).getTime() ===
+          new Date(user.updatedAt).getTime();
+
       toast.success("User Logged in Successfully", {
         id: toastId,
         duration: 1500,
         onAutoClose: () => {
-          router.push("/");
+          if (firstLogin) {
+            router.push("/profile");
+          } else {
+            router.push("/");
+          }
         },
       });
     } catch (err) {
