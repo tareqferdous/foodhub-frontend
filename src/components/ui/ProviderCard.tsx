@@ -16,7 +16,6 @@ export default function ProviderCard({
   gradient,
   initial,
 }: ProviderCardProps & { gradient: string; initial: string }) {
-  console.log("provider", provider);
   return (
     <Link
       key={provider.id}

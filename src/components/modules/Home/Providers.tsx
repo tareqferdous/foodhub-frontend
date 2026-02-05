@@ -1,4 +1,4 @@
-import { getProviderGradient } from "@/app/providers/page";
+import { getProviderGradient } from "@/app/(commonLayout)/providers/page";
 import ProviderCard from "@/components/ui/ProviderCard";
 import { providerService } from "@/service/provider.service";
 import Link from "next/link";

@@ -25,12 +25,8 @@ export default function Navbar() {
     }
   };
 
-  // This would come from your auth context/state management
-  const isLoggedIn = !!session?.data?.user;
-  // Example: simulate a dynamic user role for demonstration
-  const userRole: "customer" | "provider" | "admin" = isLoggedIn
-    ? "customer"
-    : "admin"; // Change as needed for testing ("customer", "provider", or "admin")
+  const isLoggedIn = !!session?.data?.user && session?.data?.user;
+  const userRole = isLoggedIn?.role || "CUSTOMER";
   const cartItemsCount = 3;
 
   return (
@@ -56,18 +52,13 @@ export default function Navbar() {
               className='text-gray-700 hover:text-primary-600 font-medium transition'>
               Restaurants
             </Link>
-            <Link
-              href='/about'
-              className='text-gray-700 hover:text-primary-600 font-medium transition'>
-              About
-            </Link>
           </div>
 
           {/* Right Side Actions */}
           <div className='hidden md:flex items-center space-x-4'>
             {isLoggedIn ? (
               <>
-                {userRole === "customer" && (
+                {userRole === "CUSTOMER" && (
                   <Link
                     href='/cart'
                     className='relative p-2 text-gray-700 hover:text-primary-600 transition'>
@@ -97,14 +88,14 @@ export default function Navbar() {
                         className='block px-4 py-2 text-gray-700 hover:bg-gray-50'>
                         Profile
                       </Link>
-                      {userRole === "customer" && (
+                      {userRole === "CUSTOMER" && (
                         <Link
                           href='/orders'
                           className='block px-4 py-2 text-gray-700 hover:bg-gray-50'>
                           My Orders
                         </Link>
                       )}
-                      {/* {userRole === "provider" && (
+                      {userRole === "PROVIDER" && (
                         <>
                           <Link
                             href='/provider/dashboard'
@@ -117,8 +108,8 @@ export default function Navbar() {
                             My Menu
                           </Link>
                         </>
-                      )} */}
-                      {userRole === "admin" && (
+                      )}
+                      {userRole === "ADMIN" && (
                         <Link
                           href='/admin'
                           className='block px-4 py-2 text-gray-700 hover:bg-gray-50'>
