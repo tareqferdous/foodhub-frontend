@@ -76,7 +76,6 @@ const CheckoutPage = () => {
       clearProviderCart(providerId);
       toast.success("Order placed successfully!", {
         id: toastId,
-        duration: 1500,
         onAutoClose: () => {
           router.push(`/orders/${data.data.id}`);
         },

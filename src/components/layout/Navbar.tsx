@@ -1,5 +1,6 @@
 "use client";
 
+import { useCart } from "@/contexts/CartContext";
 import { authClient } from "@/lib/auth.client";
 import { ChevronDown, Menu, ShoppingCart, User, X } from "lucide-react";
 import Link from "next/link";
@@ -12,7 +13,7 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const session = authClient.useSession();
-
+  const { items } = useCart();
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -27,7 +28,7 @@ export default function Navbar() {
 
   const isLoggedIn = !!session?.data?.user && session?.data?.user;
   const userRole = isLoggedIn?.role || "CUSTOMER";
-  const cartItemsCount = 3;
+  const cartItemsCount = items.length;
 
   return (
     <nav className='bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm'>

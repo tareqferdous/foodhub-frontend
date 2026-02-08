@@ -12,10 +12,6 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function MealsPage() {
-  // const categoriesResponse = await categoryService.getCategories();
-
-  // const categories = categoriesResponse.data?.data || [];
-
   const searchParams = useSearchParams();
   const [meals, setMeals] = useState<{ meals: Meal[] }>({ meals: [] });
   const [categories, setCategories] = useState<any[]>([]);
@@ -79,23 +75,6 @@ export default function MealsPage() {
     fetchMeals();
     fetchCategories();
   }, [cuisine, dietary, minPrice, maxPrice]);
-
-  // if (!mealsResponse || mealsResponse.error) {
-  //   return (
-  //     <div className='min-h-screen bg-neutral-50 dark:bg-neutral-900'>
-  //       <div className='container-7xl py-20'>
-  //         <div className='text-center'>
-  //           <h1 className='text-3xl font-bold text-neutral-900 dark:text-neutral-50 mb-4'>
-  //             Error Loading Meals
-  //           </h1>
-  //           <p className='text-neutral-600 dark:text-neutral-400'>
-  //             {mealsResponse?.error?.message || "Something went wrong"}
-  //           </p>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  //
 
   // Get active filters for display
   const activeFilters = {

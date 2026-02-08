@@ -1,4 +1,5 @@
 import DashboardSidebar from "@/components/layout/DashboardSidebar";
+import { userService } from "@/service/user.service";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
@@ -12,16 +13,19 @@ export const metadata: Metadata = {
     "Browse menus from various food providers, place orders, and track delivery status",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { data } = await userService.getSession();
+
+  const userInfo = data.user;
   return (
     <html lang='en'>
       <body className={inter.className}>
         <div className='min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-rose-50'>
-          <DashboardSidebar />
+          <DashboardSidebar user={userInfo} />
 
           <div className='lg:ml-64'>{children}</div>
           <Toaster richColors position='top-right' />

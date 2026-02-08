@@ -19,11 +19,13 @@ export interface Meal {
   title: string;
   description: string | null;
   price: string;
-  image: string | null;
+  image: string | undefined;
   isAvailable: boolean;
   dietaryType: DietaryType;
   providerId: string;
-
+  provider?: {
+    restaurantName: string;
+  };
   categoryId: string;
   category: Category;
 

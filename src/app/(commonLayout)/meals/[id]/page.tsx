@@ -1,4 +1,5 @@
 import { mealService } from "@/service/meal.service";
+import { reviewService } from "@/service/review.service";
 import { ShoppingCart, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -6,7 +7,7 @@ import Link from "next/link";
 const MealDetails = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
   const { data: meal } = await mealService.getMealById(id);
-  console.log(meal);
+  const mealReviews = await reviewService.getMealReviews(id);
 
   const {
     provider,

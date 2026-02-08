@@ -1,3 +1,4 @@
+// Import your improved MealCard component
 import MealCard from "@/components/ui/MealCard";
 import { providerService } from "@/service/provider.service";
 
@@ -5,9 +6,20 @@ interface Meal {
   id: string;
   title: string;
   description: string;
-  price: number;
-  category: string;
+  price: string;
+  image: string | null;
+  category: {
+    id: string;
+    name: string;
+  };
   dietaryType: string;
+  isAvailable: boolean;
+  providerId: string;
+  provider: {
+    restaurantName: string;
+  };
+  reviews: any[];
+  createdAt: string;
 }
 
 interface Provider {
@@ -17,68 +29,9 @@ interface Provider {
   address?: string;
   phone: string;
   meals?: Meal[];
+  orders?: any[];
+  createdAt: string;
 }
-
-// Sample data - replace with your actual data
-const sampleProvider: Provider = {
-  id: "1",
-  restaurantName: "Bella Italia",
-  description:
-    "Authentic Italian cuisine prepared by master chefs with fresh ingredients imported directly from Italy. We pride ourselves on traditional recipes passed down through generations.",
-  address: "Dhanmondi 27, Dhaka 1209",
-  phone: "+880 1712-345678",
-  meals: [
-    {
-      id: "1",
-      title: "Pasta Carbonara",
-      description: "Creamy pasta with bacon, eggs, and parmesan cheese",
-      price: 450,
-      category: "Main Course",
-      dietaryType: "Non-Veg",
-    },
-    {
-      id: "2",
-      title: "Margherita Pizza",
-      description:
-        "Classic pizza with tomato sauce, mozzarella, and fresh basil",
-      price: 650,
-      category: "Pizza",
-      dietaryType: "Vegetarian",
-    },
-    {
-      id: "3",
-      title: "Risotto ai Funghi",
-      description: "Creamy mushroom risotto with white wine and parmesan",
-      price: 550,
-      category: "Main Course",
-      dietaryType: "Vegetarian",
-    },
-    {
-      id: "4",
-      title: "Tiramisu",
-      description: "Classic Italian dessert with coffee-soaked ladyfingers",
-      price: 320,
-      category: "Dessert",
-      dietaryType: "Vegetarian",
-    },
-    {
-      id: "5",
-      title: "Lasagna Bolognese",
-      description: "Layers of pasta with meat sauce and béchamel",
-      price: 580,
-      category: "Main Course",
-      dietaryType: "Non-Veg",
-    },
-    {
-      id: "6",
-      title: "Caprese Salad",
-      description: "Fresh mozzarella, tomatoes, and basil with olive oil",
-      price: 380,
-      category: "Appetizer",
-      dietaryType: "Vegetarian",
-    },
-  ],
-};
 
 export default async function ProviderDetails({
   params,
@@ -88,219 +41,216 @@ export default async function ProviderDetails({
   const { id } = await params;
   const { data: provider } = await providerService.getProviderById(id);
 
-  const providerInfo = provider?.data;
-
+  const providerInfo: Provider = provider?.data;
   const initial = providerInfo.restaurantName.charAt(0).toUpperCase();
 
+  // Calculate stats
+  const totalMeals = providerInfo.meals?.length || 0;
+  const availableMeals =
+    providerInfo.meals?.filter((m) => m.isAvailable).length || 0;
+  const totalOrders = providerInfo.orders?.length || 0;
+
   return (
-    <div className='min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-rose-50'>
-      <div className='fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20'>
-        <div className='absolute top-10 right-10 w-96 h-96 bg-red-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse' />
-        <div className='absolute bottom-10 left-10 w-96 h-96 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000' />
-      </div>
+    <div className='min-h-screen bg-gray-50'>
+      {/* Hero Section */}
+      <div className='bg-white border-b border-gray-200'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+          {/* Header with gradient background */}
+          <div className='relative h-48 sm:h-64 bg-gradient-to-br from-[#e10101] via-[#c00000] to-[#a00000] rounded-b-3xl overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8'>
+            {/* Decorative elements */}
+            <div className='absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2' />
+            <div className='absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2' />
 
-      <div className='relative z-10'>
-        <div className='max-w-7xl mx-auto px-6 py-12'>
-          <div className='bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100'>
-            <div className='relative h-64 bg-gradient-to-br from-[#e10101] via-red-600 to-rose-600 overflow-hidden'>
-              <div className='absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2' />
-              <div className='absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2' />
-
-              <div className='absolute inset-0 flex items-center justify-center'>
-                <div className='text-[200px] font-bold text-white/10 select-none leading-none'>
-                  {initial}
-                </div>
+            {/* Large initial in background */}
+            <div className='absolute inset-0 flex items-center justify-center'>
+              <div className='text-[180px] sm:text-[220px] font-bold text-white/10 select-none leading-none'>
+                {initial}
               </div>
+            </div>
+          </div>
 
-              <div className='absolute bottom-8 left-8'>
-                <div className='w-24 h-24 bg-white rounded-3xl shadow-2xl flex items-center justify-center'>
-                  <span className='text-5xl font-bold bg-gradient-to-br from-[#e10101] to-red-600 bg-clip-text text-transparent'>
+          {/* Provider Info Card - Overlapping header */}
+          <div className='relative -mt-20 sm:-mt-24 pb-8'>
+            <div className='bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-8'>
+              <div className='flex flex-col sm:flex-row gap-6'>
+                {/* Restaurant Icon */}
+                <div className='w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-[#e10101] to-[#c00000] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg'>
+                  <span className='text-3xl sm:text-4xl font-bold text-white'>
                     {initial}
                   </span>
                 </div>
-              </div>
-            </div>
 
-            <div className='p-8 lg:p-12'>
-              <div className='grid lg:grid-cols-2 gap-8'>
-                <div className='space-y-6'>
-                  <div>
-                    <h1 className='text-4xl lg:text-5xl font-bold text-gray-900 mb-4'>
-                      {providerInfo.restaurantName}
-                    </h1>
-                    {providerInfo.description && (
-                      <p className='text-lg text-gray-600 leading-relaxed'>
-                        {providerInfo.description}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* <div className='flex gap-6 pt-4'>
-                    <div className='text-center'>
-                      <div className='text-3xl font-bold text-[#e10101] mb-1'>
-                        {provider.meals?.length || 0}
-                      </div>
-                      <div className='text-sm text-gray-500'>খাবার</div>
-                    </div>
-                    <div className='w-px bg-gray-200' />
-                    <div className='text-center'>
-                      <div className='text-3xl font-bold text-[#e10101] mb-1'>
-                        {categories.length - 1}
-                      </div>
-                      <div className='text-sm text-gray-500'>ক্যাটাগরি</div>
-                    </div>
-                    <div className='w-px bg-gray-200' />
-                    <div className='text-center'>
-                      <div className='text-3xl font-bold text-[#e10101] mb-1'>
-                        4.8
-                      </div>
-                      <div className='text-sm text-gray-500'>রেটিং</div>
-                    </div>
-                  </div> */}
-                </div>
-
-                <div className='space-y-4'>
-                  <h3 className='text-lg font-semibold text-gray-900 mb-4'>
-                    যোগাযোগের তথ্য
-                  </h3>
-
-                  {providerInfo.address && (
-                    <div className='flex items-start gap-4 p-4 bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl border border-red-100'>
-                      <div className='w-12 h-12 rounded-xl bg-gradient-to-br from-[#e10101] to-red-600 p-0.5 flex-shrink-0'>
-                        <div className='w-full h-full bg-white rounded-[11px] flex items-center justify-center'>
-                          <svg
-                            className='w-6 h-6 text-[#e10101]'
-                            fill='none'
-                            viewBox='0 0 24 24'
-                            stroke='currentColor'>
-                            <path
-                              strokeLinecap='round'
-                              strokeLinejoin='round'
-                              strokeWidth={2}
-                              d='M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z'
-                            />
-                            <path
-                              strokeLinecap='round'
-                              strokeLinejoin='round'
-                              strokeWidth={2}
-                              d='M15 11a3 3 0 11-6 0 3 3 0 016 0z'
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                      <div className='flex-1 pt-1'>
-                        <p className='text-xs text-gray-500 mb-1 font-medium'>
-                          ঠিকানা
-                        </p>
-                        <p className='text-gray-900 font-medium'>
-                          {providerInfo.address}
-                        </p>
-                      </div>
-                    </div>
+                {/* Restaurant Details */}
+                <div className='flex-1 min-w-0'>
+                  <h1 className='text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2'>
+                    {providerInfo.restaurantName}
+                  </h1>
+                  {providerInfo.description && (
+                    <p className='text-gray-600 text-sm sm:text-base leading-relaxed mb-4'>
+                      {providerInfo.description}
+                    </p>
                   )}
 
-                  <div className='flex items-start gap-4 p-4 bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl border border-red-100'>
-                    <div className='w-12 h-12 rounded-xl bg-gradient-to-br from-[#e10101] to-red-600 p-0.5 flex-shrink-0'>
-                      <div className='w-full h-full bg-white rounded-[11px] flex items-center justify-center'>
+                  {/* Contact Info */}
+                  <div className='flex flex-wrap gap-4 text-sm'>
+                    {providerInfo.address && (
+                      <div className='flex items-center gap-2 text-gray-700'>
                         <svg
-                          className='w-6 h-6 text-[#e10101]'
+                          className='w-5 h-5 text-[#e10101] flex-shrink-0'
                           fill='none'
-                          viewBox='0 0 24 24'
-                          stroke='currentColor'>
+                          stroke='currentColor'
+                          viewBox='0 0 24 24'>
                           <path
                             strokeLinecap='round'
                             strokeLinejoin='round'
                             strokeWidth={2}
-                            d='M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z'
+                            d='M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z'
+                          />
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M15 11a3 3 0 11-6 0 3 3 0 016 0z'
                           />
                         </svg>
+                        <span className='truncate'>{providerInfo.address}</span>
                       </div>
-                    </div>
-                    <div className='flex-1 pt-1'>
-                      <p className='text-xs text-gray-500 mb-1 font-medium'>
-                        ফোন
-                      </p>
+                    )}
+                    <div className='flex items-center gap-2 text-gray-700'>
+                      <svg
+                        className='w-5 h-5 text-[#e10101] flex-shrink-0'
+                        fill='none'
+                        stroke='currentColor'
+                        viewBox='0 0 24 24'>
+                        <path
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth={2}
+                          d='M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z'
+                        />
+                      </svg>
                       <a
                         href={`tel:${providerInfo.phone}`}
-                        className='text-gray-900 font-medium hover:text-[#e10101] transition-colors'>
+                        className='hover:text-[#e10101] transition-colors font-medium'>
                         {providerInfo.phone}
                       </a>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
 
-          <div className='mt-12'>
-            <div className='flex items-center justify-between mb-8'>
-              <h2 className='text-3xl font-bold text-gray-900'>আমাদের খাবার</h2>
-
-              <div></div>
-            </div>
-
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-              {providerInfo.meals?.map((meal, index) => (
-                <div key={meal.id}>
-                  <MealCard meal={meal} />{" "}
-                  {/* <Link
-                    key={meal.id}
-                    href={`/meals/${meal.id}`}
-                    className='group'
-                    style={{
-                      animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`,
-                    }}>
-                    <div className='h-full bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100'>
-                      <div className='relative h-32 bg-gradient-to-br from-[#e10101] via-red-600 to-rose-600 overflow-hidden'>
-                        <div className='absolute inset-0 flex items-center justify-center'>
-                          <div className='text-6xl font-bold text-white/20 select-none'>
-                            {meal.title.charAt(0).toUpperCase()}
-                          </div>
-                        </div>
-
-                        <div className='absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full'>
-                          <span className='text-xs font-semibold text-gray-800'>
-                            {meal.category}
-                          </span>
-                        </div>
-
-                        <div className='absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full border border-green-200'>
-                          <span className='text-xs font-medium text-green-700'>
-                            {meal.dietaryType}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className='p-5 space-y-3'>
-                        <div>
-                          <h3 className='text-xl font-bold text-gray-900 mb-2 group-hover:text-[#e10101] transition-colors'>
-                            {meal.title}
-                          </h3>
-                          <p className='text-sm text-gray-600 leading-relaxed line-clamp-2'>
-                            {meal.description}
-                          </p>
-                        </div>
-
-                        <div className='flex items-center justify-between pt-3 border-t border-gray-100'>
-                          <div>
-                            <p className='text-xs text-gray-500 mb-1'>মূল্য</p>
-                            <p className='text-2xl font-bold text-[#e10101]'>
-                              ৳{meal.price}
-                            </p>
-                          </div>
-                          <button className='bg-gradient-to-r from-[#e10101] to-red-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:shadow-lg hover:scale-105 active:scale-100 transition-all duration-300 text-sm'>
-                            অর্ডার করুন
-                          </button>
-                        </div>
-                      </div>
+                {/* Stats */}
+                <div className='flex sm:flex-col gap-3 sm:gap-4'>
+                  <div className='bg-gradient-to-br from-[#e10101] to-[#c00000] rounded-xl p-4 text-white text-center min-w-[100px] shadow-lg'>
+                    <p className='text-2xl sm:text-3xl font-bold'>
+                      {totalMeals}
+                    </p>
+                    <p className='text-xs sm:text-sm opacity-90 mt-1'>
+                      Total Meals
+                    </p>
+                  </div>
+                  <div className='bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white text-center min-w-[100px] shadow-lg'>
+                    <p className='text-2xl sm:text-3xl font-bold'>
+                      {availableMeals}
+                    </p>
+                    <p className='text-xs sm:text-sm opacity-90 mt-1'>
+                      Available
+                    </p>
+                  </div>
+                  {totalOrders > 0 && (
+                    <div className='bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white text-center min-w-[100px] shadow-lg'>
+                      <p className='text-2xl sm:text-3xl font-bold'>
+                        {totalOrders}
+                      </p>
+                      <p className='text-xs sm:text-sm opacity-90 mt-1'>
+                        Orders
+                      </p>
                     </div>
-                  </Link> */}
+                  )}
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Meals Section */}
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12'>
+        {/* Section Header */}
+        <div className='flex items-center justify-between mb-8'>
+          <div>
+            <h2 className='text-2xl sm:text-3xl font-bold text-gray-900 mb-2'>
+              Our Menu
+            </h2>
+            <p className='text-gray-600 text-sm sm:text-base'>
+              {availableMeals} of {totalMeals} meals currently available
+            </p>
+          </div>
+
+          {/* Filter buttons could go here */}
+          <div className='hidden sm:flex gap-2 bg-white rounded-lg p-1 shadow-sm border border-gray-200'>
+            <button className='px-4 py-2 rounded-md text-sm font-semibold bg-[#e10101] text-white'>
+              All
+            </button>
+            <button className='px-4 py-2 rounded-md text-sm font-semibold text-gray-600 hover:text-gray-900'>
+              Available
+            </button>
+          </div>
+        </div>
+
+        {/* Meals Grid */}
+        {!providerInfo.meals || providerInfo.meals.length === 0 ? (
+          <div className='text-center py-16'>
+            <div className='w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4'>
+              <svg
+                className='w-10 h-10 text-gray-400'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'>
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4'
+                />
+              </svg>
+            </div>
+            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+              No meals available yet
+            </h3>
+            <p className='text-gray-600'>
+              This restaurant hasn't added any meals to their menu.
+            </p>
+          </div>
+        ) : (
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
+            {providerInfo.meals.map((meal) => (
+              <MealCard
+                key={meal.id}
+                meal={{
+                  ...meal,
+                  provider: {
+                    restaurantName: providerInfo.restaurantName,
+                  },
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Additional Info Section (Optional) */}
+      {providerInfo.description && (
+        <div className='bg-white border-t border-gray-200 mt-12'>
+          <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
+            <div className='max-w-3xl'>
+              <h3 className='text-xl font-bold text-gray-900 mb-4'>About Us</h3>
+              <p className='text-gray-600 leading-relaxed'>
+                {providerInfo.description}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
