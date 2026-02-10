@@ -1,4 +1,37 @@
-const UserInfo = ({ currentRole, user, providerProfile, formatDate }) => {
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified?: boolean;
+  status?: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+interface ProviderProfile {
+  id: string;
+  userId: string;
+  restaurantName: string;
+  description?: string;
+  address?: string;
+  phone?: string;
+  totalMeals?: number;
+  totalOrders?: number;
+}
+
+interface UserInfoProps {
+  currentRole: string;
+  user: User;
+  providerProfile: ProviderProfile | null;
+  formatDate: (date: string | Date) => string;
+}
+
+const UserInfo = ({
+  currentRole,
+  user,
+  providerProfile,
+  formatDate,
+}: UserInfoProps) => {
   return (
     <div className='p-6 pt-4 space-y-4'>
       <div className='text-center pb-4 border-b border-gray-100'>

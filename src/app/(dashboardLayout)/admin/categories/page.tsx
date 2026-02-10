@@ -31,7 +31,12 @@ export default function CategoriesPage() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5000/api/categories");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/categories`,
+        {
+          credentials: "include",
+        },
+      );
       const result: ApiResponse = await response.json();
       if (result.success) {
         setCategories(result.data);
@@ -67,8 +72,8 @@ export default function CategoriesPage() {
     setSubmitting(true);
     try {
       const url = editingCategory
-        ? `http://localhost:5000/api/admin/categories/${editingCategory.id}`
-        : "http://localhost:5000/api/categories";
+        ? `${process.env.NEXT_PUBLIC_API_URL}/admin/categories/${editingCategory.id}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/categories`;
       const method = editingCategory ? "PATCH" : "POST";
 
       const response = await fetch(url, {
@@ -94,7 +99,7 @@ export default function CategoriesPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/admin/categories/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/categories/${id}`,
         {
           method: "DELETE",
           credentials: "include",

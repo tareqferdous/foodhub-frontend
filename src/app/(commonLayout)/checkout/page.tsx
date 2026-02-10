@@ -2,10 +2,10 @@
 
 import { useCart } from "@/contexts/CartContext";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { toast } from "sonner";
 
-const CheckoutPage = () => {
+function CheckoutContent() {
   const searchParams = useSearchParams();
   const providerId = searchParams.get("providerId");
   const router = useRouter();
@@ -39,7 +39,7 @@ const CheckoutPage = () => {
               />
             </svg>
           </div>
-          <p className='text-gray-600 text-lg'>Invalid checkout</p>
+          <p className='text-gray-600 text-lg'>No items in checkout</p>
         </div>
       </div>
     );
@@ -72,7 +72,6 @@ const CheckoutPage = () => {
         toast.error(data.message || "Order failed", { id: toastId });
         throw new Error(data.message || "Order failed");
       }
-
       clearProviderCart(providerId);
       toast.success("Order placed successfully!", {
         id: toastId,
@@ -80,8 +79,10 @@ const CheckoutPage = () => {
           router.push(`/orders/${data.data.id}`);
         },
       });
-    } catch (err: any) {
-      toast.error(err.message, { id: toastId });
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "An error occurred", {
+        id: toastId,
+      });
     } finally {
       setLoading(false);
     }
@@ -316,6 +317,34 @@ const CheckoutPage = () => {
         </div>
       </div>
     </div>
+  );
+}
+
+// Loading fallback component
+function CheckoutLoadingFallback() {
+  return (
+    <div className='min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8'>
+      <div className='max-w-3xl mx-auto'>
+        <div className='mb-8'>
+          <div className='h-9 bg-gray-200 rounded w-48 animate-pulse'></div>
+          <div className='h-5 bg-gray-200 rounded w-64 mt-2 animate-pulse'></div>
+        </div>
+        <div className='space-y-6'>
+          <div className='bg-white rounded-xl shadow-sm h-64 animate-pulse'></div>
+          <div className='bg-white rounded-xl shadow-sm h-48 animate-pulse'></div>
+          <div className='bg-white rounded-xl shadow-sm h-32 animate-pulse'></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Main component with Suspense boundary
+const CheckoutPage = () => {
+  return (
+    <Suspense fallback={<CheckoutLoadingFallback />}>
+      <CheckoutContent />
+    </Suspense>
   );
 };
 

@@ -1,14 +1,29 @@
 import ProviderCard from "@/components/ui/ProviderCard";
 import { providerService } from "@/service/provider.service";
 
-interface Provider {
+export type Meal = {
   id: string;
+  title: string;
+  description: string | null;
+  price: string; // or number if you prefer
+  image: string;
+  dietaryType: "VEG" | "NON_VEG" | "HALAL"; // depending on your app
+  categoryId: string;
+  providerId: string;
+  isAvailable: boolean;
+  createdAt: string; // ISO date string
+};
+
+export type Provider = {
+  id: string;
+  userId: string;
   restaurantName: string;
-  description?: string;
-  address?: string;
+  description: string;
+  address: string;
   phone: string;
-  meals?: string[];
-}
+  createdAt: string; // ISO date string
+  meals: Meal[];
+};
 
 // Generate unique gradient for each provider
 export const getProviderGradient = (index: number) => {
@@ -28,7 +43,7 @@ export const getProviderGradient = (index: number) => {
 
 export default async function AllProviders() {
   const providers = await providerService.getAllProviders();
-  const sampleProviders = providers?.data?.data || [];
+  const sampleProviders: Provider[] = providers?.data?.data || [];
 
   return (
     <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>

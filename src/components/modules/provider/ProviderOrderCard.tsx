@@ -1,43 +1,45 @@
-type Meal = {
-  image: string;
-  title: string;
-  description?: string;
-  dietaryType?: string;
-};
-
-type OrderItem = {
-  id: string;
-  meal: Meal;
-  quantity: number;
-  price: number;
-};
-
-type Customer = {
-  name: string;
-  email: string;
-};
-
-type Order = {
-  id: string;
-  status: string;
-  createdAt: string;
-  customer: Customer;
-  deliveryAddress: string;
-  items: OrderItem[];
-  totalPrice: string;
-};
+import { Order, OrderStatus } from "@/types/orderTypes";
 
 type ProviderOrderCardProps = {
   order: Order;
-  getStatusBadge: (status: string) => JSX.Element | null;
+  handleStatusUpdate: (id: string, status: OrderStatus) => Promise<void>;
   formatDate: (date: string) => string;
-  handleStatusUpdate: (id: string, status: string) => Promise<void>;
   formatCurrency: (value: string) => string;
+};
+
+const getStatusBadge = (status: Order["status"]) => {
+  const config = {
+    PLACED: {
+      bg: "bg-yellow-100",
+      text: "text-yellow-700",
+      border: "border-yellow-300",
+      label: "PLACED",
+    },
+    DELIVERED: {
+      bg: "bg-green-100",
+      text: "text-green-700",
+      border: "border-green-300",
+      label: "DELIVERED",
+    },
+    CANCELLED: {
+      bg: "bg-red-100",
+      text: "text-red-700",
+      border: "border-red-300",
+      label: "CANCELLED",
+    },
+  };
+
+  const statusConfig = config[status];
+  return (
+    <span
+      className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${statusConfig.bg} ${statusConfig.text} border ${statusConfig.border}`}>
+      {statusConfig.label}
+    </span>
+  );
 };
 
 const ProviderOrderCard = ({
   order,
-  getStatusBadge,
   formatDate,
   handleStatusUpdate,
   formatCurrency,
@@ -76,7 +78,7 @@ const ProviderOrderCard = ({
             {order.status === "PLACED" && (
               <>
                 <button
-                  onClick={() => handleStatusUpdate(order.id, "CONFIRMED")}
+                  onClick={() => handleStatusUpdate(order.id, "DELIVERED")}
                   className='bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-2 rounded-xl font-semibold hover:shadow-lg transition-all text-sm'>
                   Confirm
                 </button>
@@ -86,34 +88,6 @@ const ProviderOrderCard = ({
                   Cancel
                 </button>
               </>
-            )}
-            {order.status === "CONFIRMED" && (
-              <>
-                <button
-                  onClick={() => handleStatusUpdate(order.id, "PREPARING")}
-                  className='bg-gradient-to-r from-purple-500 to-purple-600 text-white px-5 py-2 rounded-xl font-semibold hover:shadow-lg transition-all text-sm'>
-                  Start Preparing
-                </button>
-                <button
-                  onClick={() => handleStatusUpdate(order.id, "CANCELLED")}
-                  className='bg-white border-2 border-red-200 text-red-600 px-5 py-2 rounded-xl font-semibold hover:bg-red-50 transition-all text-sm'>
-                  Cancel
-                </button>
-              </>
-            )}
-            {order.status === "PREPARING" && (
-              <button
-                onClick={() => handleStatusUpdate(order.id, "READY")}
-                className='bg-gradient-to-r from-green-500 to-green-600 text-white px-5 py-2 rounded-xl font-semibold hover:shadow-lg transition-all text-sm'>
-                Mark as Ready
-              </button>
-            )}
-            {order.status === "READY" && (
-              <button
-                onClick={() => handleStatusUpdate(order.id, "DELIVERED")}
-                className='bg-gradient-to-r from-gray-600 to-gray-700 text-white px-5 py-2 rounded-xl font-semibold hover:shadow-lg transition-all text-sm'>
-                Mark as Delivered
-              </button>
             )}
           </div>
         </div>

@@ -1,35 +1,65 @@
 "use client";
 
+import { authClient } from "@/lib/auth.client";
 import { useEffect, useState } from "react";
+
+interface Meal {
+  id: string;
+  title: string;
+  description: string | null;
+  price: string;
+  image: string;
+  dietaryType: "VEG" | "NON_VEG" | "HALAL";
+  categoryId: string;
+  providerId: string;
+  isAvailable: boolean;
+  createdAt: string;
+  category?: {
+    id: string;
+    name: string;
+    createdAt: string;
+  };
+  _count?: {
+    orderItems: number;
+  };
+}
 
 interface Order {
   id: string;
-  status:
-    | "PLACED"
-    | "CONFIRMED"
-    | "PREPARING"
-    | "READY"
-    | "DELIVERED"
-    | "CANCELLED";
-  totalPrice: number;
+  customerId: string;
+  providerId: string;
+  totalPrice: string;
+  deliveryAddress: string;
+  status: "PLACED" | "DELIVERED" | "CANCELLED";
   createdAt: string;
 }
 
+interface Provider {
+  id: string;
+  restaurantName: string;
+  meals?: Meal[];
+  orders?: Order[];
+}
+
+interface Stats {
+  activeMeals: number;
+  pendingOrders: number;
+  deliveredOrders: number;
+  totalRevenue: string;
+}
+
 interface DashboardData {
-  provider: {
-    id: string;
-    restaurantName: string;
-  };
-  stats: {
-    totalMeals: number;
-    totalOrders: number;
-  };
-  recentOrders: Order[];
+  provider: Provider;
+  stats: Stats;
 }
 
 export default function ProviderDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const { data: session } = authClient.useSession();
+
+  console.log("session", session?.session.token);
 
   // Fetch dashboard data
   useEffect(() => {
@@ -37,9 +67,12 @@ export default function ProviderDashboard() {
       setIsLoading(true);
       try {
         const response = await fetch(
-          "http://localhost:5000/api/providers/dashboard",
+          `${process.env.NEXT_PUBLIC_API_URL}/providers/dashboard`,
           {
             credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
           },
         );
 

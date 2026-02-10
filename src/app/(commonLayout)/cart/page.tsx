@@ -164,7 +164,7 @@ export default function CartPage() {
                 <div className='border-t border-gray-200 px-6 py-4 bg-gray-50'>
                   <div className='flex items-center justify-between'>
                     <Link
-                      href='/meals'
+                      href={`/providers/${group.providerId}`}
                       className='text-gray-600 hover:text-gray-900 font-semibold text-sm'>
                       + Add more from {group.providerName}
                     </Link>
@@ -224,26 +224,12 @@ export default function CartPage() {
           </div>
 
           {/* Action Buttons */}
-          <div className='flex gap-4'>
+          <div className='flex gap-4 w-50 mx-auto'>
             <Link
               href='/meals'
-              className='flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-4 rounded-xl transition-colors text-center'>
+              className='bg-gradient-to-r from-[#e10101] to-red-600 text-white px-5 py-3 rounded-xl font-bold hover:shadow-lg hover:scale-105 active:scale-100 transition-all duration-300'>
               Continue Shopping
             </Link>
-            <button
-              onClick={() => {
-                // Navigate to first provider checkout or show multi-checkout modal
-                if (cartGroups.length === 1) {
-                  window.location.href = `/checkout?providerId=${cartGroups[0].providerId}`;
-                } else {
-                  alert(
-                    `You have ${cartGroups.length} separate orders. Please checkout each order individually.`,
-                  );
-                }
-              }}
-              className='flex-1 bg-gradient-to-r from-[#e10101] to-red-600 text-white font-bold py-4 rounded-xl hover:shadow-lg hover:scale-105 active:scale-100 transition-all duration-300'>
-              Proceed to Checkout
-            </button>
           </div>
         </div>
 

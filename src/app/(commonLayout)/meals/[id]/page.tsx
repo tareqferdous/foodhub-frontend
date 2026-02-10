@@ -1,13 +1,22 @@
+import AddToCartButton from "@/components/modules/customer/AddToCartButton";
 import { mealService } from "@/service/meal.service";
-import { reviewService } from "@/service/review.service";
-import { ShoppingCart, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+
+export type Review = {
+  id: string;
+  rating: number;
+  comment: string;
+  mealId: string;
+  orderId: string;
+  createdAt: string;
+};
 
 const MealDetails = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
   const { data: meal } = await mealService.getMealById(id);
-  const mealReviews = await reviewService.getMealReviews(id);
+  // const mealReviews = await reviewService.getMealReviews(id);
 
   const {
     provider,
@@ -20,7 +29,7 @@ const MealDetails = async ({ params }: { params: Promise<{ id: string }> }) => {
     reviews,
   } = meal.data;
 
-  const quantity = 1;
+  console.log("meal.data", meal.data);
 
   return (
     <>
@@ -55,10 +64,7 @@ const MealDetails = async ({ params }: { params: Promise<{ id: string }> }) => {
               <div className='absolute inset-0 bg-linear-to-br from-amber-400/20 to-rose-400/20 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-700 -z-10' />
               <div className='relative aspect-square rounded-3xl overflow-hidden shadow-2xl border border-white/50'>
                 <Image
-                  src={
-                    image ||
-                    "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=800"
-                  }
+                  src={image}
                   alt={title}
                   fill
                   className='object-cover transition-transform duration-700 group-hover:scale-105'
@@ -82,7 +88,7 @@ const MealDetails = async ({ params }: { params: Promise<{ id: string }> }) => {
               <div className='inline-flex items-center gap-2 self-start'>
                 <div className='w-2 h-2 bg-amber-500 rounded-full animate-pulse' />
                 <span className='text-sm font-light tracking-[0.2em] uppercase text-neutral-600'>
-                  {provider.name}
+                  {provider.restaurantName}
                 </span>
               </div>
 
@@ -93,7 +99,7 @@ const MealDetails = async ({ params }: { params: Promise<{ id: string }> }) => {
                 </h1>
                 <div className='flex items-center gap-3'>
                   <span className='inline-block px-4 py-1.5 bg-linear-to-r from-emerald-50 to-teal-50 text-emerald-700 rounded-full text-xs font-medium tracking-wide border border-emerald-100'>
-                    {dietaryType.name}
+                    {dietaryType}
                   </span>
                 </div>
               </div>
@@ -122,7 +128,7 @@ const MealDetails = async ({ params }: { params: Promise<{ id: string }> }) => {
                   </div>
                 </div>
 
-                <div>
+                {/* <div>
                   <span className='block text-sm font-light tracking-wider text-neutral-500 mb-3 uppercase'>
                     Quantity
                   </span>
@@ -159,25 +165,33 @@ const MealDetails = async ({ params }: { params: Promise<{ id: string }> }) => {
                       </svg>
                     </button>
                   </div>
-                </div>
+                </div> */}
               </div>
 
               {/* Total */}
-              <div className='flex items-baseline gap-3 pt-4'>
+              {/* <div className='flex items-baseline gap-3 pt-4'>
                 <span className='text-sm font-light tracking-wider text-neutral-500 uppercase'>
                   Total
                 </span>
                 <span className='text-3xl font-light text-neutral-900'>
                   ${(price * quantity).toFixed(2)}
                 </span>
-              </div>
+              </div> */}
 
               {/* Action buttons */}
+              <AddToCartButton
+                mealId={id}
+                price={Number(price)}
+                title={title}
+                image={image}
+                providerName={provider.restaurantName}
+                providerId={provider.id}
+              />
 
-              <button className='btn-primary w-full flex items-center justify-center gap-2'>
+              {/* <button className='btn-primary w-full flex items-center justify-center gap-2'>
                 <ShoppingCart className='w-5 h-5' />
                 Add to Cart
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
@@ -186,12 +200,14 @@ const MealDetails = async ({ params }: { params: Promise<{ id: string }> }) => {
           <h2 className='text-2xl font-bold mb-6'>Customer Reviews</h2>
           <div className='space-y-4'>
             {reviews.length > 0 ? (
-              reviews.map((review) => (
+              reviews.map((review: Review) => (
                 <div key={review.id} className='card p-6'>
                   <div className='flex items-start justify-between mb-3'>
                     <div>
-                      <div className='font-semibold'>{review.userName}</div>
-                      <div className='text-sm text-gray-500'>{review.date}</div>
+                      {/* <div className='font-semibold'>{review.userName}</div> */}
+                      <div className='text-sm text-gray-500'>
+                        {review.createdAt}
+                      </div>
                     </div>
                     <div className='flex items-center gap-1'>
                       {[...Array(5)].map((_, i) => (

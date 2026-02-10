@@ -8,8 +8,6 @@ import Link from "next/link";
 export default function MealCard({ meal }: { meal: Meal }) {
   const { addToCart } = useCart();
 
-  console.log("meal", meal);
-
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent navigation when clicking Add to Cart
     addToCart({
@@ -18,7 +16,7 @@ export default function MealCard({ meal }: { meal: Meal }) {
       price: Number(meal.price),
       image: meal.image,
       providerId: meal.providerId,
-      providerName: meal?.provider.restaurantName,
+      providerName: meal?.provider?.restaurantName ?? "",
     });
   };
 
@@ -129,7 +127,7 @@ export default function MealCard({ meal }: { meal: Meal }) {
             <div className='flex-1 min-w-0'>
               <p className='text-xs text-gray-500'>From</p>
               <p className='text-sm font-semibold text-gray-900 truncate'>
-                {meal.provider.restaurantName}
+                {meal.provider?.restaurantName ?? "Unknown Restaurant"}
               </p>
             </div>
           </div>

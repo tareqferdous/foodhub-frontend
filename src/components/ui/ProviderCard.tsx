@@ -1,15 +1,29 @@
+import { Meal } from "@/types/meal.type";
 import Link from "next/link";
 
-export interface ProviderCardProps {
+// export interface ProviderCardProps {
+//   provider: {
+//     id: string;
+//     restaurantName: string;
+//     description?: string;
+//     address?: string;
+//     phone: string;
+//     meals?: string[];
+//   };
+// }
+
+export type ProviderCardProps = {
   provider: {
     id: string;
     restaurantName: string;
     description?: string;
     address?: string;
     phone: string;
-    meals?: string[];
+    meals?: Meal[];
   };
-}
+  gradient: string;
+  initial: string;
+};
 
 export default function ProviderCard({
   provider,

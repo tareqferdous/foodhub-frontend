@@ -1,12 +1,42 @@
 import { Edit, Eye, EyeOff, Trash2 } from "lucide-react";
 import Image from "next/image";
 
+type DietaryType = "VEG" | "NON_VEG" | "HALAL";
+
+interface Meal {
+  id: string;
+  title: string;
+  description: string | null;
+  price: string;
+  image?: string;
+  dietaryType: DietaryType;
+  categoryId: string;
+  providerId: string;
+  isAvailable: boolean;
+  createdAt: string;
+
+  category?: {
+    id: string;
+    name: string;
+    createdAt: string;
+  };
+
+  _count?: {
+    orderItems: number;
+  };
+}
+
+interface ManageMenuCardProps {
+  menuItems: Meal[];
+  handleEdit: (item: Meal) => void;
+  handleDelete: (id: string) => void;
+}
+
 const ManageMenuCard = ({
   menuItems,
-  toggleAvailability,
   handleEdit,
   handleDelete,
-}) => {
+}: ManageMenuCardProps) => {
   return (
     <div className='grid sm:grid-cols-2 lg:grid-cols-3 gap-6'>
       {menuItems.map((item) => (
@@ -50,13 +80,16 @@ const ManageMenuCard = ({
               <div className='text-xl font-bold text-primary-600'>
                 ${item.price}
               </div>
-              <div className='text-sm text-gray-600'>{item.category.name}</div>
+              {item.category && (
+                <div className='text-sm text-gray-600'>
+                  {item.category.name}
+                </div>
+              )}
             </div>
 
             {/* Actions */}
             <div className='grid grid-cols-3 gap-2 pt-3 border-t border-gray-100'>
               <button
-                onClick={() => toggleAvailability(item.id)}
                 className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition ${
                   item.isAvailable
                     ? "bg-green-100 text-green-700 hover:bg-green-200"

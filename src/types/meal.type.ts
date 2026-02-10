@@ -12,24 +12,40 @@ export interface Review {
   userId: string;
 }
 
-export type DietaryType = "HALAL" | "VEGETARIAN" | "VEGAN";
+export type DietaryType = "HALAL" | "VEGETARIAN" | "HALAL";
 
 export interface Meal {
   id: string;
   title: string;
   description: string | null;
   price: string;
-  image: string | undefined;
+  image?: string | undefined;
   isAvailable: boolean;
-  dietaryType: DietaryType;
+  dietaryType?: string;
   providerId: string;
   provider?: {
     restaurantName: string;
   };
+  categoryId?: string;
+  category?: {
+    id: string;
+    name: string;
+  };
+
+  reviews?: Review[];
+
+  createdAt: string;
+}
+
+export interface ManageMenuItem {
+  id: string;
+  title: string;
+  description: string | null;
+  price: string;
   categoryId: string;
-  category: Category;
-
-  reviews: Review[];
-
+  providerId: string;
+  image?: string;
+  dietaryType?: DietaryType;
+  isAvailable: boolean;
   createdAt: string;
 }

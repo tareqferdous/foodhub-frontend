@@ -6,64 +6,141 @@ import { Plus, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-type MenuItem = {
+type DietaryType = "VEG" | "NON_VEG" | "HALAL";
+
+export interface Meal {
   id: string;
   title: string;
-  description?: string;
-  price: number;
-  categoryId: string;
+  description: string | null;
+  price: string;
   image?: string;
+  dietaryType: DietaryType;
+  categoryId: string;
+  providerId: string;
   isAvailable: boolean;
-  dietaryType?: string;
-};
+  createdAt: string;
+
+  category?: {
+    id: string;
+    name: string;
+    createdAt: string;
+  };
+
+  _count?: {
+    orderItems: number;
+  };
+}
+
+export interface MenuFormData {
+  title: string;
+  description: string;
+  price: string;
+  categoryId: string;
+  image: string;
+  dietaryType?: DietaryType;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
+interface Order {
+  id: string;
+  customerId: string;
+  providerId: string;
+  totalPrice: string;
+  deliveryAddress: string;
+  status: string;
+  createdAt: string;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+interface ProviderDashboard {
+  id: string;
+  userId: string;
+  restaurantName: string;
+  description: string;
+  address: string;
+  phone: string;
+  createdAt: string;
+  meals: Meal[];
+  orders: Order[];
+  user: User;
+}
+
+interface ApiResponse {
+  success: boolean;
+  data: {
+    provider: ProviderDashboard;
+  };
+}
+
+interface CategoriesApiResponse {
+  data: Category[];
+}
 
 export default function ManageMenuPage() {
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
-  const [data, setData] = useState<any>(null);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [editingItem, setEditingItem] = useState<Meal | null>(null);
+  const [data, setData] = useState<ProviderDashboard | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<MenuFormData>({
     title: "",
     description: "",
     price: "",
     categoryId: "",
     image: "",
-    dietaryType: "",
+    dietaryType: undefined,
   });
 
   const fetchProvider = async () => {
+    const toastId = toast.loading("Loading menu...");
     setIsLoading(true);
     try {
       const response = await fetch(
-        "http://localhost:5000/api/providers/dashboard",
+        `${process.env.NEXT_PUBLIC_API_URL}/providers/dashboard`,
         {
           credentials: "include",
         },
       );
 
       if (response.ok) {
-        const result = await response.json();
+        const result: ApiResponse = await response.json();
         if (result.success && result.data) {
-          setData(result?.data?.provider);
+          setData(result.data.provider);
         }
       }
     } catch (error) {
       console.error("Error fetching dashboard:", error);
     } finally {
       setIsLoading(false);
+      toast.dismiss(toastId);
     }
   };
 
   const fetchCategories = async () => {
+    const toastId = toast.loading("Loading categories...");
     try {
-      const response = await fetch("http://localhost:5000/api/categories");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/categories`,
+        { credentials: "include" },
+      );
       if (response.ok) {
-        const result = await response.json();
+        const result: CategoriesApiResponse = await response.json();
         setCategories(result.data);
       }
     } catch (error) {
       console.error("Error fetching categories:", error);
+    } finally {
+      toast.dismiss(toastId);
     }
   };
 
@@ -78,7 +155,6 @@ export default function ManageMenuPage() {
       editingItem ? "Updating item..." : "Creating item...",
     );
 
-    // editing existing item
     const payload = {
       title: formData.title,
       description: formData.description,
@@ -89,7 +165,7 @@ export default function ManageMenuPage() {
     };
 
     try {
-      const response = await fetch(`http://localhost:5000/api/meals`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/meals`, {
         method: editingItem ? "PATCH" : "POST",
         headers: {
           "Content-Type": "application/json",
@@ -115,9 +191,11 @@ export default function ManageMenuPage() {
     } catch (error) {
       toast.error("Error creating item. Please try again.", { id: toastId });
     }
+
     fetchProvider();
     setShowAddModal(false);
     setEditingItem(null);
+
     // Reset form
     setFormData({
       title: "",
@@ -125,11 +203,11 @@ export default function ManageMenuPage() {
       price: "",
       categoryId: "",
       image: "",
-      dietaryType: "",
+      dietaryType: undefined,
     });
   };
 
-  const handleEdit = (item: MenuItem) => {
+  const handleEdit = (item: Meal) => {
     setEditingItem(item);
     setFormData({
       title: item.title,
@@ -137,7 +215,7 @@ export default function ManageMenuPage() {
       price: String(item.price),
       categoryId: item.categoryId,
       image: item.image || "",
-      dietaryType: item.dietaryType || "",
+      dietaryType: item.dietaryType || undefined,
     });
     setShowAddModal(true);
   };
@@ -145,10 +223,13 @@ export default function ManageMenuPage() {
   const handleDelete = async (id: string) => {
     const toastId = toast.loading("Deleting item...");
     try {
-      const response = await fetch(`http://localhost:5000/api/meals/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/meals/${id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        },
+      );
       if (response.ok) {
         toast.success("Item deleted successfully!", { id: toastId });
         fetchProvider();
@@ -158,9 +239,9 @@ export default function ManageMenuPage() {
     }
   };
 
-  const toggleAvailability = (id: string) => {
-    console.log("Toggling availability:", id);
-  };
+  if (isLoading) {
+    return <div className='text-center py-12'>Loading...</div>;
+  }
 
   return (
     <div className='min-h-screen bg-gray-50'>
@@ -173,7 +254,7 @@ export default function ManageMenuPage() {
                 Manage Menu
               </h1>
               <p className='text-gray-600 mt-1'>
-                {data?.meals.length} items in menu
+                {data?.meals.length || 0} items in menu
               </p>
             </div>
             <button
@@ -190,13 +271,12 @@ export default function ManageMenuPage() {
         {/* Menu Items Grid */}
         <ManageMenuCard
           menuItems={data?.meals || []}
-          toggleAvailability={toggleAvailability}
           handleEdit={handleEdit}
           handleDelete={handleDelete}
         />
 
         {/* Empty State */}
-        {data?.meals.length === 0 && (
+        {(data?.meals.length === 0 || !data?.meals) && (
           <div className='text-center py-12'>
             <div className='text-gray-400 mb-4'>
               <Search className='w-16 h-16 mx-auto' />
@@ -205,7 +285,7 @@ export default function ManageMenuPage() {
               No items found
             </h3>
             <p className='text-gray-600'>
-              Try adjusting your search or filters
+              Add your first menu item to get started
             </p>
           </div>
         )}

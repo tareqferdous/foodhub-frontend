@@ -1,4 +1,4 @@
-const ProfileHeader = ({ currentRole }) => {
+const ProfileHeader = ({ currentRole }: { currentRole: string }) => {
   return (
     <div className='mb-8'>
       <div className='flex items-center gap-3 mb-2'>

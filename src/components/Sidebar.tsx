@@ -27,8 +27,7 @@ const dietaryOptions = [
 export default function Sidebar({
   activeFilters,
   categories,
-  dietaryTypes,
-}: MealFiltersProps & { categories: Category[]; dietaryTypes: string[] }) {
+}: MealFiltersProps & { categories: Category[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();

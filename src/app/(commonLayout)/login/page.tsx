@@ -47,7 +47,6 @@ export default function LoginPage() {
 
       toast.success("User Logged in Successfully", {
         id: toastId,
-        duration: 1500,
         onAutoClose: () => {
           if (firstLogin) {
             router.push("/profile");

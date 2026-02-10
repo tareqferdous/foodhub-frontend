@@ -1,13 +1,24 @@
 import { getProviderGradient } from "@/app/(commonLayout)/providers/page";
 import ProviderCard from "@/components/ui/ProviderCard";
 import { providerService } from "@/service/provider.service";
+import { Meal } from "@/types/meal.type";
 import Link from "next/link";
+
+type Provider = {
+  id: string;
+  userId: string;
+  restaurantName: string;
+  description?: string;
+  address?: string;
+  phone: string;
+  createdAt: string;
+  meals?: Meal[];
+};
 
 const Providers = async () => {
   const providers = await providerService.getAllProviders();
-  const providersList = providers?.data?.data || [];
+  const providersList: Provider[] = providers?.data?.data || [];
 
-  console.log("providers", providers);
   return (
     <section className='py-16 bg-gray-50'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>

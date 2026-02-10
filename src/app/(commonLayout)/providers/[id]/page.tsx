@@ -50,6 +50,8 @@ export default async function ProviderDetails({
     providerInfo.meals?.filter((m) => m.isAvailable).length || 0;
   const totalOrders = providerInfo.orders?.length || 0;
 
+  console.log("providerInfo.meals", providerInfo.meals);
+
   return (
     <div className='min-h-screen bg-gray-50'>
       {/* Hero Section */}
@@ -218,7 +220,7 @@ export default async function ProviderDetails({
               No meals available yet
             </h3>
             <p className='text-gray-600'>
-              This restaurant hasn't added any meals to their menu.
+              This restaurant has not added any meals to their menu.
             </p>
           </div>
         ) : (
@@ -228,6 +230,7 @@ export default async function ProviderDetails({
                 key={meal.id}
                 meal={{
                   ...meal,
+                  image: meal.image ?? undefined,
                   provider: {
                     restaurantName: providerInfo.restaurantName,
                   },

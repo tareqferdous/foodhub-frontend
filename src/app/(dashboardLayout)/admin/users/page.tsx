@@ -26,9 +26,12 @@ export default function AdminUsers() {
     const fetchUsers = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("http://localhost:5000/api/admin/users", {
-          credentials: "include",
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/admin/users`,
+          {
+            credentials: "include",
+          },
+        );
 
         if (response.ok) {
           const result = await response.json();
@@ -52,7 +55,7 @@ export default function AdminUsers() {
   ) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/admin/${userId}/status`,
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/${userId}/status`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },

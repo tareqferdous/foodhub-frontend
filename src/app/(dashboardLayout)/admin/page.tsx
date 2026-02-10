@@ -41,9 +41,12 @@ export default function AdminDashboard() {
     const fetchAdminData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("http://localhost:5000/api/admin", {
-          credentials: "include",
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/admin`,
+          {
+            credentials: "include",
+          },
+        );
 
         if (response.ok) {
           const result = await response.json();

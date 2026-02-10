@@ -1,17 +1,50 @@
 import { X } from "lucide-react";
 
+type DietaryType = "HALAL" | "VEG" | "NON_VEG";
+
 interface Category {
   id: string;
   name: string;
+  createdAt: string;
+}
+
+interface Meal {
+  id: string;
+  title: string;
+  description: string | null;
+  price: string;
+  image?: string;
+  dietaryType: DietaryType;
+  categoryId: string;
+  providerId: string;
+  isAvailable: boolean;
+  createdAt: string;
+  category?: {
+    id: string;
+    name: string;
+    createdAt: string;
+  };
+  _count?: {
+    orderItems: number;
+  };
+}
+
+export interface MenuFormData {
+  title: string;
+  description: string;
+  price: string;
+  categoryId: string;
+  image: string;
+  dietaryType?: DietaryType;
 }
 
 interface MenuAddEditModalProps {
-  editingItem: any;
-  setEditingItem: (item: any) => void;
-  setShowAddModal: (show: boolean) => void;
-  formData: any;
-  setFormData: (data: any) => void;
+  editingItem: Meal | null;
+  setEditingItem: React.Dispatch<React.SetStateAction<Meal | null>>;
+  formData: MenuFormData;
+  setFormData: React.Dispatch<React.SetStateAction<MenuFormData>>;
   handleSubmit: (e: React.FormEvent) => void;
+  setShowAddModal: (open: boolean) => void;
   categories: Category[];
 }
 
@@ -55,10 +88,10 @@ const MenuAddEditModal = ({
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className=' w-full text-gray-700 rounded-md border px-3 py-2 text-sm
+                className='w-full text-gray-700 rounded-md border px-3 py-2 text-sm
                     transition-all duration-200
-                        placeholder:text-gray-400
-                        focus:outline-none focus:ring-2'
+                    placeholder:text-gray-400
+                    focus:outline-none focus:ring-2'
                 placeholder='e.g., Chicken Tikka Masala'
               />
             </div>
@@ -66,18 +99,18 @@ const MenuAddEditModal = ({
             {/* Description */}
             <div className='md:col-span-2'>
               <label className='block text-sm font-medium text-gray-700 mb-2'>
-                Description *
+                Description
               </label>
               <textarea
                 required
-                value={formData.description || ""}
+                value={formData.description}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                className=' w-full text-gray-700 rounded-md border px-3 py-2 text-sm
+                className='w-full text-gray-700 rounded-md border px-3 py-2 text-sm
                     transition-all duration-200
-                        placeholder:text-gray-400
-                        focus:outline-none focus:ring-2'
+                    placeholder:text-gray-400
+                    focus:outline-none focus:ring-2'
                 rows={3}
                 placeholder='Describe your dish...'
               />
@@ -91,14 +124,14 @@ const MenuAddEditModal = ({
               <input
                 type='url'
                 required
-                value={formData.image || ""}
+                value={formData.image}
                 onChange={(e) =>
                   setFormData({ ...formData, image: e.target.value })
                 }
-                className=' w-full text-gray-700 rounded-md border px-3 py-2 text-sm
+                className='w-full text-gray-700 rounded-md border px-3 py-2 text-sm
                     transition-all duration-200
-                        placeholder:text-gray-400
-                        focus:outline-none focus:ring-2'
+                    placeholder:text-gray-400
+                    focus:outline-none focus:ring-2'
                 placeholder='https://...'
               />
             </div>
@@ -116,10 +149,10 @@ const MenuAddEditModal = ({
                 onChange={(e) =>
                   setFormData({ ...formData, price: e.target.value })
                 }
-                className=' w-full text-gray-700 rounded-md border px-3 py-2 text-sm
+                className='w-full text-gray-700 rounded-md border px-3 py-2 text-sm
                     transition-all duration-200
-                        placeholder:text-gray-400
-                        focus:outline-none focus:ring-2'
+                    placeholder:text-gray-400
+                    focus:outline-none focus:ring-2'
                 placeholder='12.99'
               />
             </div>
@@ -135,21 +168,21 @@ const MenuAddEditModal = ({
                 onChange={(e) =>
                   setFormData({ ...formData, categoryId: e.target.value })
                 }
-                className=' w-full text-gray-700 rounded-md border px-3 py-2 text-sm
+                className='w-full text-gray-700 rounded-md border px-3 py-2 text-sm
                     transition-all duration-200
-                        placeholder:text-gray-400
-                        focus:outline-none focus:ring-2'>
+                    placeholder:text-gray-400
+                    focus:outline-none focus:ring-2'>
                 <option value=''>Select category</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
-                    {cat.id}
+                    {cat.name}
                   </option>
                 ))}
               </select>
             </div>
 
             {/* Dietary Options */}
-            <div>
+            <div className='md:col-span-2'>
               <label className='block text-sm font-medium text-gray-700 mb-2'>
                 Dietary Option *
               </label>
@@ -157,13 +190,16 @@ const MenuAddEditModal = ({
                 required
                 value={formData.dietaryType || ""}
                 onChange={(e) =>
-                  setFormData({ ...formData, dietaryType: e.target.value })
+                  setFormData({
+                    ...formData,
+                    dietaryType: e.target.value as DietaryType,
+                  })
                 }
-                className=' w-full text-gray-700 rounded-md border px-3 py-2 text-sm
+                className='w-full text-gray-700 rounded-md border px-3 py-2 text-sm
                     transition-all duration-200
-                        placeholder:text-gray-400
-                        focus:outline-none focus:ring-2'>
-                <option value=''>Select dietary</option>
+                    placeholder:text-gray-400
+                    focus:outline-none focus:ring-2'>
+                <option value=''>Select dietary option</option>
                 {["HALAL", "VEG", "NON_VEG"].map((item) => (
                   <option key={item} value={item}>
                     {item}

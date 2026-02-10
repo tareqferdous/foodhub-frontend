@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+export const dynamic = "force-dynamic";
+
 interface OrderItem {
   id: string;
   orderId: string;
@@ -39,9 +41,12 @@ export default function AdminOrders() {
     const fetchOrders = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("http://localhost:5000/api/admin/orders", {
-          credentials: "include",
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/admin/orders`,
+          {
+            credentials: "include",
+          },
+        );
 
         if (response.ok) {
           const result = await response.json();

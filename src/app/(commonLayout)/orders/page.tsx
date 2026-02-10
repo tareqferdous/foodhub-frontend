@@ -1,9 +1,43 @@
 "use client";
 
 import { orderService } from "@/service/order.service";
-import { Order } from "@/types/orderTypes";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
+type Provider = {
+  id: string;
+  restaurantName: string;
+};
+
+type Meal = {
+  id: string;
+  title: string;
+  image?: string;
+};
+
+type OrderItem = {
+  id: string;
+  orderId: string;
+  mealId: string;
+  price: string;
+  quantity: number;
+  meal: Meal;
+};
+
+type OrderStatus = "PLACED" | "DELIVERED" | "CANCELLED";
+
+type Order = {
+  id: string;
+  customerId: string;
+  providerId: string;
+  totalPrice: string;
+  deliveryAddress: string;
+  status: OrderStatus;
+  createdAt: string;
+
+  provider: Provider;
+  items: OrderItem[];
+};
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -156,11 +190,7 @@ export default function OrdersPage() {
                   className={`h-full transition-all ${
                     order.status === "DELIVERED"
                       ? "bg-green-500 w-full"
-                      : order.status === "CANCELLED"
-                        ? "bg-red-500 w-full"
-                        : order.status === "CONFIRMED"
-                          ? "bg-yellow-500 w-2/3"
-                          : "bg-yellow-500 w-1/3"
+                      : "bg-red-500 w-full"
                   }`}></div>
               </div>
             </Link>
@@ -185,11 +215,7 @@ export default function OrdersPage() {
             </div>
             <div className='text-center'>
               <p className='text-2xl font-bold text-yellow-600'>
-                {
-                  orders.filter(
-                    (o) => o.status === "PLACED" || o.status === "CONFIRMED",
-                  ).length
-                }
+                {orders.filter((o) => o.status === "PLACED").length}
               </p>
               <p className='text-sm text-gray-600 mt-1'>In Progress</p>
             </div>
@@ -239,21 +265,6 @@ const StatusBadge = ({ status }: { status: string }) => {
           <path
             fillRule='evenodd'
             d='M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z'
-            clipRule='evenodd'
-          />
-        </svg>
-      ),
-    },
-    CONFIRMED: {
-      bg: "bg-blue-50",
-      text: "text-blue-700",
-      border: "border-blue-200",
-      icon: (
-        <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 20 20'>
-          <path d='M9 2a1 1 0 000 2h2a1 1 0 100-2H9z' />
-          <path
-            fillRule='evenodd'
-            d='M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z'
             clipRule='evenodd'
           />
         </svg>

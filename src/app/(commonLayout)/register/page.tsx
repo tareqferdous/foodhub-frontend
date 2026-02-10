@@ -39,7 +39,6 @@ export default function RegisterPage() {
       }
       toast.success("User created successfully 🎉", {
         id: toastId,
-        duration: 1500,
         onAutoClose: () => {
           router.push("/login");
         },

@@ -2,18 +2,25 @@
 
 import { useCart } from "@/contexts/CartContext";
 import { authClient } from "@/lib/auth.client";
-import { ChevronDown, Menu, ShoppingCart, User, X } from "lucide-react";
+import { ChevronDown, Menu, User, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+
+type AppUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: "CUSTOMER" | "PROVIDER" | "ADMIN";
+};
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const session = authClient.useSession();
-  const { items } = useCart();
+  const { getTotalItems } = useCart();
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -26,9 +33,13 @@ export default function Navbar() {
     }
   };
 
-  const isLoggedIn = !!session?.data?.user && session?.data?.user;
-  const userRole = isLoggedIn?.role || "CUSTOMER";
-  const cartItemsCount = items.length;
+  console.log("session", session);
+
+  const user = session.data?.user as AppUser | undefined;
+
+  const isLoggedIn = !!user;
+  const userRole = user?.role ?? "CUSTOMER";
+  const cartItemsCount = getTotalItems();
 
   return (
     <nav className='bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm'>
@@ -63,12 +74,30 @@ export default function Navbar() {
                   <Link
                     href='/cart'
                     className='relative p-2 text-gray-700 hover:text-primary-600 transition'>
-                    <ShoppingCart className='w-6 h-6' />
-                    {cartItemsCount > 0 && (
-                      <span className='absolute -top-1 -right-1 bg-primary-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold'>
-                        {cartItemsCount}
-                      </span>
-                    )}
+                    <button className='relative p-2 text-gray-700 hover:text-blue-600 transition-colors'>
+                      <svg
+                        width='32'
+                        height='32'
+                        viewBox='0 0 32 32'
+                        fill='none'
+                        xmlns='http://www.w3.org/2000/svg'>
+                        <path
+                          d='M6 6L8 8L11 23H26L29 10H9'
+                          stroke='currentColor'
+                          strokeWidth='2'
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                        />
+                        <circle cx='12' cy='28' r='1.5' fill='currentColor' />
+                        <circle cx='25' cy='28' r='1.5' fill='currentColor' />
+                      </svg>
+
+                      {cartItemsCount > 0 && (
+                        <span className='absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold'>
+                          {cartItemsCount}
+                        </span>
+                      )}
+                    </button>
                   </Link>
                 )}
 
@@ -179,7 +208,7 @@ export default function Navbar() {
                     className='text-gray-700 hover:text-primary-600 font-medium'>
                     Profile
                   </Link>
-                  {userRole === "customer" && (
+                  {userRole === "CUSTOMER" && (
                     <>
                       <Link
                         href='/cart'
@@ -198,7 +227,9 @@ export default function Navbar() {
                       </Link>
                     </>
                   )}
-                  <button className='text-left text-red-600 hover:text-red-700 font-medium'>
+                  <button
+                    onClick={handleLogout}
+                    className='text-left text-red-600 hover:text-red-700 font-medium'>
                     Logout
                   </button>
                 </>

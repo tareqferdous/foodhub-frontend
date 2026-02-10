@@ -1,3 +1,44 @@
+interface EditFormData {
+  name: string;
+  email: string;
+  restaurantName: string;
+  description: string;
+  address: string;
+  phone: string;
+}
+
+interface ProviderProfile {
+  id: string;
+  userId: string;
+  restaurantName: string;
+  description?: string;
+  address?: string;
+  phone?: string;
+  totalMeals?: number;
+  totalOrders?: number;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+interface EditFormProps {
+  isLoadingProfile: boolean;
+  isCreatingProfile: boolean;
+  setIsCreatingProfile: (value: boolean) => void;
+  isEditing: boolean;
+  setIsEditing: (value: boolean) => void;
+  editForm: EditFormData;
+  setEditForm: (value: EditFormData) => void;
+  providerProfile: ProviderProfile | null;
+  handleCancel: () => void;
+  handleSave: () => void;
+  currentRole: "CUSTOMER" | "PROVIDER";
+  user: User;
+}
+
 const EditForm = ({
   isLoadingProfile,
   isCreatingProfile,
@@ -11,7 +52,7 @@ const EditForm = ({
   handleSave,
   currentRole,
   user,
-}) => {
+}: EditFormProps) => {
   return (
     <div className='lg:col-span-2'>
       <div className='bg-white rounded-3xl shadow-xl p-8 border border-gray-100'>

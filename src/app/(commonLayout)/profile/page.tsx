@@ -2,21 +2,23 @@
 
 import EditForm from "@/components/modules/profile/EditForm";
 import ProfileHeader from "@/components/modules/profile/ProfileHeader";
-import ProfileImage from "@/components/modules/profile/ProfileImage";
 import UserInfo from "@/components/modules/profile/UserInfo";
 import { authClient } from "@/lib/auth.client";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface User {
+  id: string;
   name: string;
   email: string;
   emailVerified: boolean;
-  image: string;
-  createdAt: string;
-  updatedAt: string;
-  role: "CUSTOMER" | "PROVIDER";
-  status: string;
-  id: string;
+  image?: string | null;
+
+  createdAt: Date;
+  updatedAt: Date;
+
+  role?: "CUSTOMER" | "PROVIDER";
+  status?: "ACTIVE" | "BLOCKED";
 }
 
 interface ProviderProfile {
@@ -31,7 +33,8 @@ interface ProviderProfile {
 }
 
 export default function ProfilePage() {
-  const { data: session, status } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
+  console.log("session", session);
 
   const [user, setUser] = useState<User | null>(null);
   const [providerProfile, setProviderProfile] =
@@ -39,6 +42,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [hasFetchedProfile, setHasFetchedProfile] = useState(false);
   const [editForm, setEditForm] = useState({
     name: "",
     email: "",
@@ -47,7 +51,7 @@ export default function ProfilePage() {
     address: "",
     phone: "",
   });
-  const [imagePreview, setImagePreview] = useState("");
+  // const [imagePreview, setImagePreview] = useState("");
 
   const currentRole = user?.role ?? null;
 
@@ -56,9 +60,9 @@ export default function ProfilePage() {
     setIsLoadingProfile(true);
     try {
       const response = await fetch(
-        "http://localhost:5000/api/providers/profile",
+        `${process.env.NEXT_PUBLIC_API_URL}/providers/profile`,
         {
-          credentials: "include", // Include cookies for authentication
+          credentials: "include",
         },
       );
 
@@ -81,24 +85,28 @@ export default function ProfilePage() {
       console.error("Error fetching provider profile:", error);
     } finally {
       setIsLoadingProfile(false);
+      setHasFetchedProfile(true);
     }
   };
 
   // Update user profile (name, email, image)
   const updateUserProfile = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/profile", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/profile`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            name: editForm.name,
+            email: editForm.email,
+            // image: imagePreview,
+          }),
         },
-        credentials: "include",
-        body: JSON.stringify({
-          name: editForm.name,
-          email: editForm.email,
-          image: imagePreview, // Include updated image if changed
-        }),
-      });
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -107,13 +115,13 @@ export default function ProfilePage() {
           ...user!,
           name: data.name || editForm.name,
           email: data.email || editForm.email,
-          image: data.image || imagePreview,
+          // image: data.image || imagePreview,
           updatedAt: data.updatedAt || new Date().toISOString(),
         });
         // Update image preview with server response
-        if (data.image) {
-          setImagePreview(data.image);
-        }
+        // if (data.image) {
+        //   setImagePreview(data.image);
+        // }
         return true;
       } else {
         console.error("Failed to update user profile");
@@ -127,20 +135,24 @@ export default function ProfilePage() {
 
   // Create provider profile
   const createProviderProfile = async () => {
+    const toastId = toast.loading("Creating provider profile...");
     try {
-      const response = await fetch("http://localhost:5000/api/providers", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/providers`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            restaurantName: editForm.restaurantName,
+            description: editForm.description,
+            address: editForm.address,
+            phone: editForm.phone,
+          }),
         },
-        credentials: "include",
-        body: JSON.stringify({
-          restaurantName: editForm.restaurantName,
-          description: editForm.description,
-          address: editForm.address,
-          phone: editForm.phone,
-        }),
-      });
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -157,12 +169,16 @@ export default function ProfilePage() {
         });
         setIsCreatingProfile(false);
         setIsEditing(false);
+        setHasFetchedProfile(true);
+        toast.success("Provider profile created successfully", { id: toastId });
         return true;
       } else {
         console.error("Failed to create provider profile");
+        toast.error("Failed to create provider profile", { id: toastId });
         return false;
       }
     } catch (error) {
+      toast.error("Error creating provider profile", { id: toastId });
       console.error("Error creating provider profile:", error);
       return false;
     }
@@ -170,20 +186,24 @@ export default function ProfilePage() {
 
   // Update provider profile
   const updateProviderProfile = async () => {
+    const toastId = toast.loading("Updating provider profile...");
     try {
-      const response = await fetch("http://localhost:5000/api/providers", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/providers`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            restaurantName: editForm.restaurantName,
+            description: editForm.description,
+            address: editForm.address,
+            phone: editForm.phone,
+          }),
         },
-        credentials: "include",
-        body: JSON.stringify({
-          restaurantName: editForm.restaurantName,
-          description: editForm.description,
-          address: editForm.address,
-          phone: editForm.phone,
-        }),
-      });
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -205,13 +225,16 @@ export default function ProfilePage() {
           phone: data?.data?.phone || "",
         }));
         setIsEditing(false);
+        toast.success("Provider profile updated successfully", { id: toastId });
         return true;
       } else {
         console.error("Failed to update provider profile");
+        toast.error("Failed to update provider profile", { id: toastId });
         return false;
       }
     } catch (error) {
       console.error("Error updating provider profile:", error);
+      toast.error("Error updating provider profile", { id: toastId });
       return false;
     }
   };
@@ -221,7 +244,7 @@ export default function ProfilePage() {
     if (!session?.user) return;
 
     setUser(session.user);
-    setImagePreview(session.user.image || "");
+    // setImagePreview(session.user.image || "");
 
     // Initialize form with user data
     setEditForm({
@@ -234,12 +257,12 @@ export default function ProfilePage() {
     });
 
     // Fetch provider profile if user is a provider
-    if (session.user.role === "PROVIDER") {
+    if ((session.user as User).role === "PROVIDER") {
       fetchProviderProfile();
     } else {
       setProviderProfile(null);
     }
-  }, [session]);
+  }, [session?.user]);
 
   const handleSave = async () => {
     if (!user) return;
@@ -282,7 +305,7 @@ export default function ProfilePage() {
       address: providerProfile?.address || "",
       phone: providerProfile?.phone || "",
     });
-    setImagePreview(user.image);
+    // setImagePreview(user.image);
     setIsEditing(false);
     setIsCreatingProfile(false);
   };
@@ -293,7 +316,7 @@ export default function ProfilePage() {
       // Show preview immediately
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+        // setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
 
@@ -312,8 +335,8 @@ export default function ProfilePage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-BD", {
+  const formatDate = (date: string | Date) => {
+    return new Date(date).toLocaleDateString("en-BD", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -330,7 +353,7 @@ export default function ProfilePage() {
   };
 
   // Loading state
-  if (status === "loading") {
+  if (isPending || (currentRole === "PROVIDER" && !hasFetchedProfile)) {
     return (
       <div className='min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-rose-50 flex items-center justify-center'>
         <div className='text-center'>
@@ -384,7 +407,7 @@ export default function ProfilePage() {
               </div>
 
               {/* Profile Image */}
-              <ProfileImage
+              {/* <ProfileImage
                 imagePreview={imagePreview}
                 setImagePreview={setImagePreview}
                 user={user}
@@ -393,11 +416,11 @@ export default function ProfilePage() {
                 getInitials={getInitials}
                 isEditing={isEditing}
                 handleImageChange={handleImageChange}
-              />
+              /> */}
 
               {/* User Info */}
               <UserInfo
-                currentRole={currentRole}
+                currentRole={currentRole || "CUSTOMER"}
                 user={user}
                 providerProfile={providerProfile}
                 formatDate={formatDate}
@@ -417,7 +440,7 @@ export default function ProfilePage() {
             providerProfile={providerProfile}
             handleCancel={handleCancel}
             handleSave={handleSave}
-            currentRole={currentRole}
+            currentRole={currentRole || "CUSTOMER"}
             user={user}
           />
         </div>

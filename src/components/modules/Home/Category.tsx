@@ -46,9 +46,12 @@ const Category = () => {
     const fetchCategories = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("http://localhost:5000/api/categories", {
-          credentials: "include",
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/categories`,
+          {
+            credentials: "include",
+          },
+        );
 
         if (response.ok) {
           const result = await response.json();

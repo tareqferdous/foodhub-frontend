@@ -1,44 +1,9 @@
 "use client";
 
 import ProviderOrderCard from "@/components/modules/provider/ProviderOrderCard";
+import { Order } from "@/types/orderTypes";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-
-interface Meal {
-  id: string;
-  title: string;
-  description: string;
-  price: string;
-  image: string;
-  dietaryType: string;
-}
-
-interface OrderItem {
-  id: string;
-  orderId: string;
-  mealId: string;
-  price: string;
-  quantity: number;
-  meal: Meal;
-}
-
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-}
-
-interface Order {
-  id: string;
-  customerId: string;
-  providerId: string;
-  totalPrice: string;
-  deliveryAddress: string;
-  status: "PLACED" | "DELIVERED" | "CANCELLED";
-  createdAt: string;
-  items: OrderItem[];
-  customer: Customer;
-}
 
 export default function ProviderOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -49,7 +14,7 @@ export default function ProviderOrders() {
       setIsLoading(true);
       try {
         const response = await fetch(
-          "http://localhost:5000/api/orders/provider",
+          `${process.env.NEXT_PUBLIC_API_URL}/orders/provider`,
           {
             credentials: "include",
           },
@@ -58,7 +23,7 @@ export default function ProviderOrders() {
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data) {
-            setOrders(result.data);
+            setOrders(result.data as Order[]);
           }
         }
       } catch (error) {
@@ -85,37 +50,6 @@ export default function ProviderOrders() {
     return `৳${parseFloat(amount).toLocaleString("en-BD")}`;
   };
 
-  const getStatusBadge = (status: Order["status"]) => {
-    const config = {
-      PLACED: {
-        bg: "bg-yellow-100",
-        text: "text-yellow-700",
-        border: "border-yellow-300",
-        label: "PLACED",
-      },
-      DELIVERED: {
-        bg: "bg-green-100",
-        text: "text-green-700",
-        border: "border-green-300",
-        label: "DELIVERED",
-      },
-      CANCELLED: {
-        bg: "bg-red-100",
-        text: "text-red-700",
-        border: "border-red-300",
-        label: "CANCELLED",
-      },
-    };
-
-    const statusConfig = config[status];
-    return (
-      <span
-        className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${statusConfig.bg} ${statusConfig.text} border ${statusConfig.border}`}>
-        {statusConfig.label}
-      </span>
-    );
-  };
-
   const handleStatusUpdate = async (
     orderId: string,
     newStatus: Order["status"],
@@ -123,7 +57,7 @@ export default function ProviderOrders() {
     const toastId = toast.loading("Updating status...");
     try {
       const response = await fetch(
-        `http://localhost:5000/api/orders/${orderId}/status`,
+        `${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}/status`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -153,11 +87,13 @@ export default function ProviderOrders() {
       <div className='min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-rose-50 flex items-center justify-center'>
         <div className='text-center'>
           <div className='w-16 h-16 border-4 border-[#e10101] border-t-transparent rounded-full animate-spin mx-auto mb-4'></div>
-          <p className='text-gray-600'>লোড হচ্ছে...</p>
+          <p className='text-gray-600'>Loading...</p>
         </div>
       </div>
     );
   }
+
+  console.log("order", orders);
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-rose-50'>
@@ -187,7 +123,6 @@ export default function ProviderOrders() {
               <ProviderOrderCard
                 key={order.id}
                 order={order}
-                getStatusBadge={getStatusBadge}
                 formatDate={formatDate}
                 handleStatusUpdate={handleStatusUpdate}
                 formatCurrency={formatCurrency}

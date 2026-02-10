@@ -5,16 +5,16 @@ import Sidebar from "@/components/Sidebar";
 import MealCard from "@/components/ui/MealCard";
 import { categoryService } from "@/service/category.service";
 import { mealService } from "@/service/meal.service";
-import { Meal } from "@/types/meal.type";
+import { Category, Meal } from "@/types/meal.type";
 import { getUniqueDietaryTypes } from "@/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
-export default function MealsPage() {
+function MealsContent() {
   const searchParams = useSearchParams();
   const [meals, setMeals] = useState<{ meals: Meal[] }>({ meals: [] });
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +61,10 @@ export default function MealsPage() {
       if (response && !response.error) {
         setCategories(response.data?.data || []);
       } else {
-        setError(response?.error?.message || "Failed to load categories");
+        setError(
+          (response?.error as { message?: string })?.message ||
+            "Failed to load categories",
+        );
       }
     } catch (err) {
       console.error("Error fetching categories:", err);
@@ -74,6 +77,7 @@ export default function MealsPage() {
   useEffect(() => {
     fetchMeals();
     fetchCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cuisine, dietary, minPrice, maxPrice]);
 
   // Get active filters for display
@@ -84,16 +88,53 @@ export default function MealsPage() {
     maxPrice,
   };
 
-  console.log("meals", meals);
+  if (loading) {
+    return (
+      <div className='bg-gray-50 min-h-screen'>
+        <div className='max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 flex flex-col lg:flex-row gap-4 lg:gap-6'>
+          {/* Sidebar skeleton */}
+          <div className='w-full lg:w-64 bg-white rounded-lg shadow-sm p-4 h-96 animate-pulse'></div>
+
+          {/* Main content skeleton */}
+          <main className='flex-1 w-full'>
+            <div className='bg-white rounded-lg shadow-sm h-16 mb-6 animate-pulse'></div>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'>
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  className='bg-white rounded-lg shadow-sm h-80 animate-pulse'></div>
+              ))}
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className='bg-gray-50 min-h-screen flex items-center justify-center'>
+        <div className='text-center'>
+          <div className='text-7xl mb-4'>⚠️</div>
+          <h3 className='text-2xl font-bold text-red-600 mb-2'>Error</h3>
+          <p className='text-gray-600 mb-6'>{error}</p>
+          <button
+            onClick={() => {
+              fetchMeals();
+              fetchCategories();
+            }}
+            className='btn btn-primary'>
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='bg-gray-50 min-h-screen'>
       <div className='max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 flex flex-col lg:flex-row gap-4 lg:gap-6'>
-        <Sidebar
-          activeFilters={activeFilters}
-          categories={categories}
-          dietaryTypes={dietaryTypes}
-        />
+        <Sidebar activeFilters={activeFilters} categories={categories} />
 
         <main className='flex-1 w-full'>
           <SearchBar />
@@ -130,5 +171,38 @@ export default function MealsPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+// Loading fallback component
+function MealsLoadingFallback() {
+  return (
+    <div className='bg-gray-50 min-h-screen'>
+      <div className='max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 flex flex-col lg:flex-row gap-4 lg:gap-6'>
+        {/* Sidebar skeleton */}
+        <div className='w-full lg:w-64 bg-white rounded-lg shadow-sm p-4 h-96 animate-pulse'></div>
+
+        {/* Main content skeleton */}
+        <main className='flex-1 w-full'>
+          <div className='bg-white rounded-lg shadow-sm h-16 mb-6 animate-pulse'></div>
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'>
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div
+                key={i}
+                className='bg-white rounded-lg shadow-sm h-80 animate-pulse'></div>
+            ))}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+// Main component with Suspense boundary
+export default function MealsPage() {
+  return (
+    <Suspense fallback={<MealsLoadingFallback />}>
+      <MealsContent />
+    </Suspense>
   );
 }
