@@ -106,7 +106,7 @@ export default function ManageMenuPage() {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/providers/dashboard`,
+        `/api/providers/dashboard`,
         {
           credentials: "include",
         },
@@ -130,7 +130,7 @@ export default function ManageMenuPage() {
     const toastId = toast.loading("Loading categories...");
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/categories`,
+        `/api/categories`,
         { credentials: "include" },
       );
       if (response.ok) {
@@ -165,7 +165,7 @@ export default function ManageMenuPage() {
     };
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/meals`, {
+      const response = await fetch(`/api/meals`, {
         method: editingItem ? "PATCH" : "POST",
         headers: {
           "Content-Type": "application/json",
@@ -224,7 +224,7 @@ export default function ManageMenuPage() {
     const toastId = toast.loading("Deleting item...");
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/meals/${id}`,
+        `/api/meals/${id}`,
         {
           method: "DELETE",
           credentials: "include",

@@ -45,13 +45,19 @@ export default function OrderDetailsPage() {
   const router = useRouter();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     orderService.getOrderById(id as string).then((res) => {
-      setOrder(res.data);
+      if (res.error || !res.data) {
+        setError(res.error?.message || "Order not found");
+      } else {
+        setOrder(res.data);
+      }
       setLoading(false);
     });
   }, [id]);
+
 
   if (loading) {
     return (
@@ -66,9 +72,20 @@ export default function OrderDetailsPage() {
 
   if (!order) {
     return (
-      <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
-        <div className='text-center'>
-          <p className='text-gray-600'>Order not found</p>
+      <div className='min-h-screen bg-gray-50 flex items-center justify-center px-4'>
+        <div className='text-center max-w-md'>
+          <div className='text-6xl mb-4'>⚠️</div>
+          <h2 className='text-2xl font-bold text-gray-900 mb-2'>
+            {error ? "Something went wrong" : "Order not found"}
+          </h2>
+          <p className='text-gray-600 mb-6'>
+            {error || "This order doesn't exist or you don't have access to it."}
+          </p>
+          <button
+            onClick={() => router.push("/orders")}
+            className='inline-block bg-[#e10101] hover:bg-[#c00000] text-white font-semibold px-6 py-3 rounded-lg transition-colors'>
+            Back to Orders
+          </button>
         </div>
       </div>
     );

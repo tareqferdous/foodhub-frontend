@@ -1,13 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: "/api/auth/:path*",
-        destination: `${process.env.NEXT_PUBLIC_AUTH_URL}/:path*`,
-      },
-    ];
-  },
   images: {
     remotePatterns: [
       {
@@ -26,7 +18,27 @@ const nextConfig = {
         protocol: "https",
         hostname: "www.tbsnews.net",
       },
+      {
+        protocol: "https",
+        hostname: "i.ibb.co",
+      },
     ],
+  },
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: "/api/auth/:path*",
+          destination: `${process.env.NEXT_PUBLIC_AUTH_URL}/:path*`,
+        },
+      ],
+      afterFiles: [
+        {
+          source: "/api/:path*",
+          destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`,
+        },
+      ],
+    };
   },
 };
 

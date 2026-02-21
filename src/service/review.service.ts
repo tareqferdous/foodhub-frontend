@@ -1,10 +1,13 @@
+const API_URL =
+  typeof window === "undefined" ? process.env.NEXT_PUBLIC_API_URL : "/api";
+
 const createReview = async (data: {
   mealId: string;
   orderId: string;
   rating: number;
   comment?: string;
 }) => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reviews`, {
+  const res = await fetch(`${API_URL}/reviews`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -24,7 +27,7 @@ const createReview = async (data: {
 
 const getMealReviews = async (mealId: string) => {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/reviews/meals/${mealId}`,
+    `${API_URL}/reviews/meals/${mealId}`,
     { cache: "no-store" },
   );
 

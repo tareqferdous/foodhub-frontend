@@ -1,5 +1,6 @@
 "use client";
 
+import { authClient } from "@/lib/auth.client";
 import { createContext, useContext, useEffect, useState } from "react";
 
 export type CartItem = {
@@ -26,37 +27,42 @@ export interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
+  const { data: session } = authClient.useSession();
+  const userId = session?.user?.id ?? "guest";
+
+  // Unique storage key per user — prevents cart leaking between accounts
+  const storageKey = `cart_${userId}`;
+
   const [items, setItems] = useState<CartItem[]>([]);
 
-  /* Load cart from localStorage */
+  /* Load cart from localStorage when userId changes (login/logout) */
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("cart");
-      if (stored) setItems(JSON.parse(stored));
+      const stored = localStorage.getItem(storageKey);
+      setItems(stored ? JSON.parse(stored) : []);
     } catch {
-      localStorage.removeItem("cart");
+      localStorage.removeItem(storageKey);
+      setItems([]);
     }
-  }, []);
+  }, [storageKey]);
 
-  /* Persist cart */
+  /* Persist cart whenever items change */
   useEffect(() => {
     if (items.length === 0) {
-      localStorage.removeItem("cart");
+      localStorage.removeItem(storageKey);
     } else {
-      localStorage.setItem("cart", JSON.stringify(items));
+      localStorage.setItem(storageKey, JSON.stringify(items));
     }
-  }, [items]);
+  }, [items, storageKey]);
 
   const addToCart = (item: Omit<CartItem, "quantity">, qty: number = 1) => {
     setItems((prev) => {
       const existing = prev.find((i) => i.mealId === item.mealId);
-
       if (existing) {
         return prev.map((i) =>
           i.mealId === item.mealId ? { ...i, quantity: i.quantity + qty } : i,
         );
       }
-
       return [...prev, { ...item, quantity: qty }];
     });
   };
@@ -70,7 +76,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       removeFromCart(mealId);
       return;
     }
-
     setItems((prev) =>
       prev.map((i) => (i.mealId === mealId ? { ...i, quantity: qty } : i)),
     );
@@ -78,20 +83,15 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   const clearCart = () => setItems([]);
 
-  // 🧹 CLEAR CART FOR A PROVIDER ✅
   const clearProviderCart = (providerId: string) => {
     setItems((prev) => prev.filter((item) => item.providerId !== providerId));
   };
 
-  // NEW: Get total number of items (considering quantities)
-  const getTotalItems = (): number => {
-    return items.reduce((total, item) => total + item.quantity, 0);
-  };
+  const getTotalItems = (): number =>
+    items.reduce((total, item) => total + item.quantity, 0);
 
-  // NEW: Get total cart value
-  const getTotalPrice = (): number => {
-    return items.reduce((total, item) => total + item.price * item.quantity, 0);
-  };
+  const getTotalPrice = (): number =>
+    items.reduce((total, item) => total + item.price * item.quantity, 0);
 
   return (
     <CartContext.Provider

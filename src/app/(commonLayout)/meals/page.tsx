@@ -63,7 +63,7 @@ function MealsContent() {
       } else {
         setError(
           (response?.error as { message?: string })?.message ||
-            "Failed to load categories",
+          "Failed to load categories",
         );
       }
     } catch (err) {
@@ -137,7 +137,7 @@ function MealsContent() {
         <Sidebar activeFilters={activeFilters} categories={categories} />
 
         <main className='flex-1 w-full'>
-          <SearchBar />
+          {/* <SearchBar /> */}
 
           {/* All Available Meals */}
           {meals?.meals?.length === 0 ? (

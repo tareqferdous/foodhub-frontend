@@ -37,7 +37,7 @@ const Providers = async () => {
         </div>
 
         <div className='grid sm:grid-cols-2 lg:grid-cols-4 gap-6'>
-          {providersList.map((provider, index) => {
+          {providersList.slice(0, 4).map((provider, index) => {
             const gradient = getProviderGradient(index);
             const initial = provider.restaurantName.charAt(0).toUpperCase();
 

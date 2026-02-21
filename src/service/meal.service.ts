@@ -1,4 +1,5 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL =
+  typeof window === "undefined" ? process.env.NEXT_PUBLIC_API_URL : "/api";
 
 interface ServiceOptions {
   cache?: RequestCache;
@@ -15,7 +16,10 @@ interface GetMealsParams {
 export const mealService = {
   getMeals: async function (params?: GetMealsParams, options?: ServiceOptions) {
     try {
-      const url = new URL(`${API_URL}/meals`);
+      const url = new URL(
+        `${API_URL}/meals`,
+        typeof window === "undefined" ? undefined : window.location.origin,
+      );
 
       if (params) {
         Object.entries(params).forEach(([key, value]) => {
@@ -69,12 +73,18 @@ export const mealService = {
     try {
       const res = await fetch(`${API_URL}/meals/${id}`);
 
-      const data = await res.json();
-      console.log("data", data);
+      if (!res.ok) {
+        return {
+          data: null,
+          error: { message: `Meal not found (status: ${res.status})` },
+        };
+      }
 
+      const data = await res.json();
       return { data: data, error: null };
     } catch (err) {
-      return { data: null, error: { message: "Something Went Wrong" } };
+      console.error("[mealService.getMealById]", err);
+      return { data: null, error: { message: "Something went wrong" } };
     }
   },
 };

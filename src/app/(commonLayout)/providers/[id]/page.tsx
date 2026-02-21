@@ -1,6 +1,7 @@
 // Import your improved MealCard component
 import MealCard from "@/components/ui/MealCard";
 import { providerService } from "@/service/provider.service";
+import { notFound } from "next/navigation";
 
 interface Meal {
   id: string;
@@ -39,9 +40,14 @@ export default async function ProviderDetails({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { data: provider } = await providerService.getProviderById(id);
+  const { data: provider, error } = await providerService.getProviderById(id);
 
   const providerInfo: Provider = provider?.data;
+
+  if (error || !providerInfo) {
+    notFound();
+  }
+
   const initial = providerInfo.restaurantName.charAt(0).toUpperCase();
 
   // Calculate stats

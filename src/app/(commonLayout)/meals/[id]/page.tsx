@@ -3,6 +3,7 @@ import { mealService } from "@/service/meal.service";
 import { Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 export type Review = {
   id: string;
@@ -15,8 +16,11 @@ export type Review = {
 
 const MealDetails = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
-  const { data: meal } = await mealService.getMealById(id);
-  // const mealReviews = await reviewService.getMealReviews(id);
+  const { data: mealResponse, error } = await mealService.getMealById(id);
+
+  if (error || !mealResponse?.data) {
+    notFound();
+  }
 
   const {
     provider,
@@ -27,9 +31,7 @@ const MealDetails = async ({ params }: { params: Promise<{ id: string }> }) => {
     image,
     price,
     reviews,
-  } = meal.data;
-
-  console.log("meal.data", meal.data);
+  } = mealResponse.data;
 
   return (
     <>
@@ -213,11 +215,10 @@ const MealDetails = async ({ params }: { params: Promise<{ id: string }> }) => {
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`w-4 h-4 ${
-                            i < review.rating
-                              ? "text-yellow-400 fill-yellow-400"
-                              : "text-gray-300"
-                          }`}
+                          className={`w-4 h-4 ${i < review.rating
+                            ? "text-yellow-400 fill-yellow-400"
+                            : "text-gray-300"
+                            }`}
                         />
                       ))}
                     </div>

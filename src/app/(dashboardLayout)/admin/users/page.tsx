@@ -27,7 +27,7 @@ export default function AdminUsers() {
       setIsLoading(true);
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/admin/users`,
+          `/api/admin/users`,
           {
             credentials: "include",
           },
@@ -55,7 +55,7 @@ export default function AdminUsers() {
   ) => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/${userId}/status`,
+        `/api/admin/${userId}/status`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -148,11 +148,10 @@ export default function AdminUsers() {
                   <button
                     key={role}
                     onClick={() => setFilterRole(role as any)}
-                    className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                      filterRole === role
+                    className={`px-4 py-2 rounded-xl font-medium transition-all ${filterRole === role
                         ? "bg-gradient-to-r from-[#e10101] to-red-600 text-white shadow-lg"
                         : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}>
+                      }`}>
                     {role}
                   </button>
                 ))}
@@ -168,11 +167,10 @@ export default function AdminUsers() {
                   <button
                     key={status}
                     onClick={() => setFilterStatus(status as any)}
-                    className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                      filterStatus === status
+                    className={`px-4 py-2 rounded-xl font-medium transition-all ${filterStatus === status
                         ? "bg-gradient-to-r from-[#e10101] to-red-600 text-white shadow-lg"
                         : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}>
+                      }`}>
                     {status}
                   </button>
                 ))}
@@ -240,21 +238,19 @@ export default function AdminUsers() {
                       </td>
                       <td className='px-6 py-4 whitespace-nowrap'>
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            user.role === "CUSTOMER"
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${user.role === "CUSTOMER"
                               ? "bg-blue-100 text-blue-700 border border-blue-300"
                               : "bg-purple-100 text-purple-700 border border-purple-300"
-                          }`}>
+                            }`}>
                           {user.role}
                         </span>
                       </td>
                       <td className='px-6 py-4 whitespace-nowrap'>
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            user.status === "ACTIVE"
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${user.status === "ACTIVE"
                               ? "bg-green-100 text-green-700 border border-green-300"
                               : "bg-red-100 text-red-700 border border-red-300"
-                          }`}>
+                            }`}>
                           {user.status}
                         </span>
                       </td>

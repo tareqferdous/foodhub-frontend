@@ -1,15 +1,38 @@
 "use client";
 
+import { authClient } from "@/lib/auth.client";
 import { useCart } from "@/contexts/CartContext";
 import { Meal } from "@/types/meal.type";
 import Image from "next/image";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function MealCard({ meal }: { meal: Meal }) {
   const { addToCart } = useCart();
+  const session = authClient.useSession();
+
+  // Define user type locally for now or import if available centrally
+  type AppUser = {
+    id: string;
+    name: string;
+    email: string;
+    role: "CUSTOMER" | "PROVIDER" | "ADMIN";
+  };
+
+  const user = session.data?.user as AppUser | undefined;
+  const userRole = user?.role; // This is the logged-in user role
+
+
+  const isUserProviderOrAdmin = userRole === "PROVIDER" || userRole === "ADMIN";
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent navigation when clicking Add to Cart
+
+    if (!session.data?.user) {
+      toast.error("You need to login first to add to cart");
+      return;
+    }
+
     addToCart({
       mealId: meal.id,
       title: meal.title,
@@ -23,9 +46,9 @@ export default function MealCard({ meal }: { meal: Meal }) {
   // Calculate average rating if reviews exist
   const averageRating = meal.reviews?.length
     ? (
-        meal.reviews.reduce((sum, review) => sum + review.rating, 0) /
-        meal.reviews.length
-      ).toFixed(1)
+      meal.reviews.reduce((sum, review) => sum + review.rating, 0) /
+      meal.reviews.length
+    ).toFixed(1)
     : null;
 
   return (
@@ -55,13 +78,12 @@ export default function MealCard({ meal }: { meal: Meal }) {
             )}
             {meal.dietaryType && (
               <span
-                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow-lg ${
-                  meal.dietaryType === "VEG"
-                    ? "bg-green-500/95 text-white"
-                    : meal.dietaryType === "NON_VEG"
-                      ? "bg-red-500/95 text-white"
-                      : "bg-yellow-500/95 text-white"
-                }`}>
+                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow-lg ${meal.dietaryType === "VEG"
+                  ? "bg-green-500/95 text-white"
+                  : meal.dietaryType === "NON_VEG"
+                    ? "bg-red-500/95 text-white"
+                    : "bg-yellow-500/95 text-white"
+                  }`}>
                 {meal.dietaryType === "VEG"
                   ? "🥬 Veg"
                   : meal.dietaryType === "NON_VEG"
@@ -161,12 +183,11 @@ export default function MealCard({ meal }: { meal: Meal }) {
             </div>
             <button
               onClick={handleAddToCart}
-              disabled={!meal.isAvailable}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 shadow-sm ${
-                meal.isAvailable
+              disabled={!meal.isAvailable || isUserProviderOrAdmin}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 shadow-sm ${meal.isAvailable && !isUserProviderOrAdmin
                   ? "bg-[#e10101] hover:bg-[#c00000] text-white hover:shadow-lg hover:-translate-y-0.5"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}>
+                }`}>
               <svg
                 className='w-4 h-4'
                 fill='none'

@@ -2,10 +2,10 @@
 
 import { useCart } from "@/contexts/CartContext";
 import { authClient } from "@/lib/auth.client";
-import { ChevronDown, Menu, User, X } from "lucide-react";
+import { ChevronDown, CloudCog, Menu, User, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 type AppUser = {
@@ -18,10 +18,47 @@ type AppUser = {
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [hasProviderProfile, setHasProviderProfile] = useState<boolean | null>(null);
+  const [profileRefreshTrigger, setProfileRefreshTrigger] = useState(0);
 
   const session = authClient.useSession();
   const { getTotalItems } = useCart();
   const router = useRouter();
+
+  const user = session.data?.user as AppUser | undefined;
+  const userRole = user?.role ?? "CUSTOMER";
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      setProfileRefreshTrigger((prev) => prev + 1);
+    };
+
+    window.addEventListener("providerProfileUpdated", handleProfileUpdate);
+    return () => {
+      window.removeEventListener("providerProfileUpdated", handleProfileUpdate);
+    };
+  }, []);
+
+  useEffect(() => {
+    const checkProviderProfile = async () => {
+      if (userRole === "PROVIDER") {
+        try {
+          const response = await fetch("/api/providers/profile", {
+            credentials: "include",
+          });
+          if (response.ok) {
+            setHasProviderProfile(true);
+          } else if (response.status === 404) {
+            setHasProviderProfile(false);
+          }
+        } catch (error) {
+          console.error("Error checking provider profile:", error);
+        }
+      }
+    };
+
+    checkProviderProfile();
+  }, [userRole, profileRefreshTrigger]);
 
   const handleLogout = async () => {
     try {
@@ -33,13 +70,8 @@ export default function Navbar() {
     }
   };
 
-  console.log("session", session);
-
-  const user = session.data?.user as AppUser | undefined;
-
-  const isLoggedIn = !!user;
-  const userRole = user?.role ?? "CUSTOMER";
   const cartItemsCount = getTotalItems();
+  const isLoggedIn = !!user;
 
   return (
     <nav className='bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm'>
@@ -127,16 +159,20 @@ export default function Navbar() {
                       )}
                       {userRole === "PROVIDER" && (
                         <>
-                          <Link
-                            href='/provider/dashboard'
-                            className='block px-4 py-2 text-gray-700 hover:bg-gray-50'>
-                            Dashboard
-                          </Link>
-                          <Link
-                            href='/provider/menu'
-                            className='block px-4 py-2 text-gray-700 hover:bg-gray-50'>
-                            My Menu
-                          </Link>
+                          {hasProviderProfile && (
+                            <>
+                              <Link
+                                href='/provider/dashboard'
+                                className='block px-4 py-2 text-gray-700 hover:bg-gray-50'>
+                                Dashboard
+                              </Link>
+                              <Link
+                                href='/provider/menu'
+                                className='block px-4 py-2 text-gray-700 hover:bg-gray-50'>
+                                My Menu
+                              </Link>
+                            </>
+                          )}
                         </>
                       )}
                       {userRole === "ADMIN" && (
@@ -208,6 +244,20 @@ export default function Navbar() {
                     className='text-gray-700 hover:text-primary-600 font-medium'>
                     Profile
                   </Link>
+                  {userRole === "PROVIDER" && hasProviderProfile && (
+                    <>
+                      <Link
+                        href='/provider/dashboard'
+                        className='text-gray-700 hover:text-primary-600 font-medium'>
+                        Dashboard
+                      </Link>
+                      <Link
+                        href='/provider/menu'
+                        className='text-gray-700 hover:text-primary-600 font-medium'>
+                        My Menu
+                      </Link>
+                    </>
+                  )}
                   {userRole === "CUSTOMER" && (
                     <>
                       <Link

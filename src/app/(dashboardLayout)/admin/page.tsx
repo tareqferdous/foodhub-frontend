@@ -42,7 +42,7 @@ export default function AdminDashboard() {
       setIsLoading(true);
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/admin`,
+          `/api/admin`,
           {
             credentials: "include",
           },

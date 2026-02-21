@@ -43,10 +43,11 @@ export default function LoginPage() {
       const firstLogin =
         user &&
         new Date(user.createdAt).getTime() ===
-          new Date(user.updatedAt).getTime();
+        new Date(user.updatedAt).getTime();
 
       toast.success("User Logged in Successfully", {
         id: toastId,
+        duration: 500,
         onAutoClose: () => {
           if (firstLogin) {
             router.push("/profile");
@@ -61,15 +62,12 @@ export default function LoginPage() {
   };
 
   // Google OAuth Registration
-  const handleGoogleLogin = async () => {
-    const data = authClient.signIn.social({
-      provider: "google",
-      callbackURL: "http://localhost:3000",
-    });
-  };
-
-  const session = authClient.useSession();
-  console.log(session);
+  // const handleGoogleLogin = async () => {
+  //   const data = authClient.signIn.social({
+  //     provider: "google",
+  //     callbackURL: "http://localhost:3000",
+  //   });
+  // };
 
   return (
     <div className='min-h-screen bg-gray-50  flex items-center justify-center'>
@@ -120,11 +118,10 @@ export default function LoginPage() {
       transition-all duration-200
       placeholder:text-gray-400
       focus:outline-none focus:ring-2
-      ${
-        errors.email
-          ? "border-red-500 focus:ring-red-500/30"
-          : "border-gray-300 focus:border-primary-500 focus:ring-primary-500/30"
-      }
+      ${errors.email
+                      ? "border-red-500 focus:ring-red-500/30"
+                      : "border-gray-300 focus:border-primary-500 focus:ring-primary-500/30"
+                    }
       disabled:cursor-not-allowed disabled:bg-gray-100
     `}
                   disabled={isLoading}
@@ -157,11 +154,10 @@ export default function LoginPage() {
       transition-all duration-200
       placeholder:text-gray-400
       focus:outline-none focus:ring-2
-      ${
-        errors.password
-          ? "border-red-500 focus:ring-red-500/30"
-          : "border-gray-300 focus:border-primary-500 focus:ring-primary-500/30"
-      }
+      ${errors.password
+                      ? "border-red-500 focus:ring-red-500/30"
+                      : "border-gray-300 focus:border-primary-500 focus:ring-primary-500/30"
+                    }
       disabled:cursor-not-allowed disabled:bg-gray-100
     `}
                   disabled={isLoading}
@@ -199,7 +195,7 @@ export default function LoginPage() {
               </button>
             </form>
             {/* Google Signup Button */}
-            <button
+            {/* <button
               type='button'
               onClick={handleGoogleLogin}
               disabled={isLoading}
@@ -223,7 +219,7 @@ export default function LoginPage() {
                 />
               </svg>
               <span className='text-neutral-700'>Continue with Google</span>
-            </button>
+            </button> */}
 
             {/* Login Link */}
             <p className='text-center mt-6 text-sm text-neutral-600 dark:text-neutral-400'>

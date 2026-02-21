@@ -47,7 +47,7 @@ const Category = () => {
       setIsLoading(true);
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/categories`,
+          `/api/categories`,
           {
             credentials: "include",
           },
@@ -104,11 +104,10 @@ const Category = () => {
                   <button
                     key={category.id}
                     onClick={() => handleCategoryClick(category.name)}
-                    className={`group relative overflow-hidden rounded-3xl p-6 transition-all duration-300 ${
-                      selectedCategory === category.name
+                    className={`group relative overflow-hidden rounded-3xl p-6 transition-all duration-300 ${selectedCategory === category.name
                         ? "scale-105 shadow-2xl"
                         : "hover:scale-105 hover:shadow-xl"
-                    }`}>
+                      }`}>
                     {/* Gradient Background */}
                     <div
                       className={`absolute inset-0 bg-gradient-to-br ${style.gradient} opacity-90 group-hover:opacity-100 transition-opacity`}></div>

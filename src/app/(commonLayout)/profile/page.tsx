@@ -60,7 +60,7 @@ export default function ProfilePage() {
     setIsLoadingProfile(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/providers/profile`,
+        `/api/providers/profile`,
         {
           credentials: "include",
         },
@@ -93,7 +93,7 @@ export default function ProfilePage() {
   const updateUserProfile = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/profile`,
+        `/api/profile`,
         {
           method: "PUT",
           headers: {
@@ -138,7 +138,7 @@ export default function ProfilePage() {
     const toastId = toast.loading("Creating provider profile...");
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/providers`,
+        `/api/providers`,
         {
           method: "POST",
           headers: {
@@ -170,6 +170,7 @@ export default function ProfilePage() {
         setIsCreatingProfile(false);
         setIsEditing(false);
         setHasFetchedProfile(true);
+        window.dispatchEvent(new Event("providerProfileUpdated"));
         toast.success("Provider profile created successfully", { id: toastId });
         return true;
       } else {
@@ -189,7 +190,7 @@ export default function ProfilePage() {
     const toastId = toast.loading("Updating provider profile...");
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/providers`,
+        `/api/providers`,
         {
           method: "PUT",
           headers: {
@@ -225,6 +226,7 @@ export default function ProfilePage() {
           phone: data?.data?.phone || "",
         }));
         setIsEditing(false);
+        window.dispatchEvent(new Event("providerProfileUpdated"));
         toast.success("Provider profile updated successfully", { id: toastId });
         return true;
       } else {
@@ -259,10 +261,10 @@ export default function ProfilePage() {
     // Fetch provider profile if user is a provider
     if ((session.user as User).role === "PROVIDER") {
       fetchProviderProfile();
-    } else {
+    } else if ((session.user as User).role !== "PROVIDER") {
       setProviderProfile(null);
     }
-  }, [session?.user]);
+  }, [session?.user?.id, session?.user?.name, session?.user?.email]);
 
   const handleSave = async () => {
     if (!user) return;

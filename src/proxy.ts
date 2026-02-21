@@ -1,22 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { Roles } from "@/constants/roles";
-import { userService } from "./src/service/user.service";
+import { Roles } from "./constants/roles";
+import { userService } from "./service/user.service";
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-
-  console.log("request.cookies", request.cookies);
-
-  // if (pathname.startsWith("/verify-email")) return NextResponse.next();
-
-  // const sessionToken = request.cookies.get(
-  //   "__Secure-better-auth.session_token",
-  // );
-
-  // if (!sessionToken) {
-  //   return NextResponse.redirect(new URL("/login", request.url));
-  // }
 
   const publicRoutes = ["/", "/login", "/register", "/meals", "/providers"];
 

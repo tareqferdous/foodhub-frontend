@@ -78,7 +78,7 @@ const ManageMenuCard = ({
 
             <div className='flex items-center justify-between pt-3 border-t border-gray-100'>
               <div className='text-xl font-bold text-primary-600'>
-                ${item.price}
+                BDT{item.price}
               </div>
               {item.category && (
                 <div className='text-sm text-gray-600'>

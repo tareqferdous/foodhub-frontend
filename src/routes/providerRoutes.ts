@@ -20,7 +20,7 @@ export const providerMenu: SidebarMenuItem[] = [
   },
   {
     label: "Profile",
-    href: "/provider/profile",
+    href: "/profile",
     icon: User,
   },
 ];

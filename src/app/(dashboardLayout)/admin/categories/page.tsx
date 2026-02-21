@@ -32,7 +32,7 @@ export default function CategoriesPage() {
     try {
       setLoading(true);
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/categories`,
+        `/api/categories`,
         {
           credentials: "include",
         },
@@ -72,8 +72,8 @@ export default function CategoriesPage() {
     setSubmitting(true);
     try {
       const url = editingCategory
-        ? `${process.env.NEXT_PUBLIC_API_URL}/admin/categories/${editingCategory.id}`
-        : `${process.env.NEXT_PUBLIC_API_URL}/categories`;
+        ? `/api/admin/categories/${editingCategory.id}`
+        : `/api/categories`;
       const method = editingCategory ? "PATCH" : "POST";
 
       const response = await fetch(url, {
@@ -99,7 +99,7 @@ export default function CategoriesPage() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/categories/${id}`,
+        `/api/admin/categories/${id}`,
         {
           method: "DELETE",
           credentials: "include",

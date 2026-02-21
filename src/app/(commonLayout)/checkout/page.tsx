@@ -13,6 +13,7 @@ function CheckoutContent() {
   const { items, clearProviderCart } = useCart();
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const providerItems = items.filter((item) => item.providerId === providerId);
 
@@ -20,6 +21,62 @@ function CheckoutContent() {
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
+
+  // Show success screen immediately after order — prevents "No items" flash
+  if (isRedirecting) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='bg-white p-8 rounded-xl shadow-sm text-center max-w-sm'>
+          <div className='w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4'>
+            <svg
+              className='w-8 h-8 text-green-500'
+              fill='none'
+              stroke='currentColor'
+              viewBox='0 0 24 24'>
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                strokeWidth={2}
+                d='M5 13l4 4L19 7'
+              />
+            </svg>
+          </div>
+          <h2 className='text-xl font-bold text-gray-900 mb-1'>Order Placed!</h2>
+          <p className='text-gray-500 text-sm'>Redirecting to your order...</p>
+          <div className='mt-4 w-8 h-8 border-2 border-gray-200 border-t-[#e10101] rounded-full animate-spin mx-auto' />
+        </div>
+      </div>
+    );
+  }
+
+  // Show success screen immediately after order — prevents "No items" flash
+  if (isRedirecting) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='bg-white p-8 rounded-xl shadow-sm text-center max-w-sm'>
+          <div className='w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4'>
+            <svg
+              className='w-8 h-8 text-green-500'
+              fill='none'
+              stroke='currentColor'
+              viewBox='0 0 24 24'>
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                strokeWidth={2}
+                d='M5 13l4 4L19 7'
+              />
+            </svg>
+          </div>
+          <h2 className='text-xl font-bold text-gray-900 mb-1'>Order Placed!</h2>
+          <p className='text-gray-500 text-sm'>
+            Redirecting to your order...
+          </p>
+          <div className='mt-4 w-8 h-8 border-2 border-gray-200 border-t-[#e10101] rounded-full animate-spin mx-auto' />
+        </div>
+      </div>
+    );
+  }
 
   if (!providerId || providerItems.length === 0) {
     return (
@@ -50,7 +107,7 @@ function CheckoutContent() {
     try {
       setLoading(true);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
+      const res = await fetch(`/api/orders`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -72,13 +129,12 @@ function CheckoutContent() {
         toast.error(data.message || "Order failed", { id: toastId });
         throw new Error(data.message || "Order failed");
       }
-      clearProviderCart(providerId);
       toast.success("Order placed successfully!", {
-        id: toastId,
-        onAutoClose: () => {
-          router.push(`/orders/${data.data.id}`);
-        },
+        id: toastId
       });
+      setIsRedirecting(true);
+      router.push(`/orders/${data.data.id}`);
+      clearProviderCart(providerId);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "An error occurred", {
         id: toastId,

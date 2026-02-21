@@ -1,7 +1,10 @@
 import { Flame, Play, Star, TrendingUp } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 const Hero = () => {
+  const videoUrl = "#features"; // Replace with your video link later
+
   return (
     <section
       className='relative overflow-hidden py-16 mt-8 px-6 lg:px-20'
@@ -30,13 +33,17 @@ const Hero = () => {
 
             {/* Buttons */}
             <div className='flex flex-wrap gap-4 pt-4'>
-              <button className='btn-outline text-red-600 px-8 py-3.5 rounded-full font-semibold transition-all duration-200 shadow-lg shadow-red-200'>
-                Get Started
-              </button>
-              <button className='bg-red-600 hover:bg-red-700 text-white px-6 py-3.5 rounded-full font-semibold flex items-center gap-2 transition-all duration-200 shadow-lg shadow-yellow-200'>
-                <Play className='w-5 h-5 fill-current' />
-                Watch Video
-              </button>
+              <Link href='/meals'>
+                <button className='btn-outline text-red-600 px-8 py-3.5 rounded-full font-semibold transition-all duration-200 shadow-lg shadow-red-200 cursor-pointer'>
+                  Get Started
+                </button>
+              </Link>
+              <Link href='https://drive.google.com/file/d/1xlY3Gy5slJsYXCQw1dD_dZZhn3w8DAxJ/view?usp=sharing' target='_blank'>
+                <button className='bg-red-600 hover:bg-red-700 text-white px-6 py-3.5 rounded-full font-semibold flex items-center gap-2 transition-all duration-200 shadow-lg shadow-yellow-200 cursor-pointer'>
+                  <Play className='w-5 h-5 fill-current' />
+                  Watch Video
+                </button>
+              </Link>
             </div>
           </div>
 

@@ -42,13 +42,19 @@ type Order = {
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     orderService.getMyOrders().then((res) => {
-      setOrders(res.data);
+      if (res.error || !res.data) {
+        setError(res.error?.message || "Failed to load orders");
+      } else {
+        setOrders(res.data);
+      }
       setLoading(false);
     });
   }, []);
+
 
   if (loading) {
     return (
@@ -60,6 +66,26 @@ export default function OrdersPage() {
       </div>
     );
   }
+
+  if (error) {
+    return (
+      <div className='min-h-screen bg-gray-50 flex items-center justify-center px-4'>
+        <div className='text-center max-w-md'>
+          <div className='text-6xl mb-4'>⚠️</div>
+          <h2 className='text-2xl font-bold text-gray-900 mb-2'>
+            Could not load orders
+          </h2>
+          <p className='text-gray-600 mb-6'>{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className='inline-block bg-[#e10101] hover:bg-[#c00000] text-white font-semibold px-6 py-3 rounded-lg transition-colors'>
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
 
   if (orders.length === 0) {
     return (
@@ -187,11 +213,10 @@ export default function OrdersPage() {
               {/* Status Timeline Indicator */}
               <div className='h-1 bg-gray-100'>
                 <div
-                  className={`h-full transition-all ${
-                    order.status === "DELIVERED"
-                      ? "bg-green-500 w-full"
-                      : "bg-red-500 w-full"
-                  }`}></div>
+                  className={`h-full transition-all ${order.status === "DELIVERED"
+                    ? "bg-green-500 w-full"
+                    : "bg-red-500 w-full"
+                    }`}></div>
               </div>
             </Link>
           ))}

@@ -1,3 +1,5 @@
+"use client"
+
 import { Roles } from "@/constants/roles";
 import { adminMenu } from "@/routes/adminRoutes";
 import { providerMenu } from "@/routes/providerRoutes";

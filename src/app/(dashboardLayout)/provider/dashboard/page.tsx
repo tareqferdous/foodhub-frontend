@@ -59,15 +59,13 @@ export default function ProviderDashboard() {
 
   const { data: session } = authClient.useSession();
 
-  console.log("session", session?.session.token);
-
   // Fetch dashboard data
   useEffect(() => {
     const fetchDashboard = async () => {
       setIsLoading(true);
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/providers/dashboard`,
+          `/api/providers/dashboard`,
           {
             credentials: "include",
             headers: {

@@ -14,7 +14,7 @@ export default function ProviderOrders() {
       setIsLoading(true);
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/orders/provider`,
+          `/api/orders/provider`,
           {
             credentials: "include",
           },
@@ -57,7 +57,7 @@ export default function ProviderOrders() {
     const toastId = toast.loading("Updating status...");
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}/status`,
+        `/api/orders/${orderId}/status`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
