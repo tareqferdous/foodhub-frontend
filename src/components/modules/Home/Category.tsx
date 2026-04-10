@@ -46,12 +46,9 @@ const Category = () => {
     const fetchCategories = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(
-          `/api/categories`,
-          {
-            credentials: "include",
-          },
-        );
+        const response = await fetch(`/api/categories`, {
+          credentials: "include",
+        });
 
         if (response.ok) {
           const result = await response.json();
@@ -79,7 +76,7 @@ const Category = () => {
     router.push(`/meals?cuisine=${categoryName}`);
   };
   return (
-    <section className='py-16 bg-white'>
+    <section id='categories' className='py-16 bg-white'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='text-center mb-10'>
           <h2 className='text-4xl font-bold font-display text-gray-900 mb-3'>
@@ -104,10 +101,11 @@ const Category = () => {
                   <button
                     key={category.id}
                     onClick={() => handleCategoryClick(category.name)}
-                    className={`group relative overflow-hidden rounded-3xl p-6 transition-all duration-300 ${selectedCategory === category.name
+                    className={`group relative overflow-hidden rounded-3xl p-6 transition-all duration-300 ${
+                      selectedCategory === category.name
                         ? "scale-105 shadow-2xl"
                         : "hover:scale-105 hover:shadow-xl"
-                      }`}>
+                    }`}>
                     {/* Gradient Background */}
                     <div
                       className={`absolute inset-0 bg-gradient-to-br ${style.gradient} opacity-90 group-hover:opacity-100 transition-opacity`}></div>

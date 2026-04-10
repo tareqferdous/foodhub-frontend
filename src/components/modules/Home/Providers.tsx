@@ -20,7 +20,7 @@ const Providers = async () => {
   const providersList: Provider[] = providers?.data?.data || [];
 
   return (
-    <section className='py-16 bg-gray-50'>
+    <section id='providers' className='py-16 bg-gray-50'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='flex items-center justify-between mb-10'>
           <div>

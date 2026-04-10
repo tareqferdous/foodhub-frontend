@@ -2,8 +2,17 @@ import Image from "next/image";
 
 const Features = () => {
   return (
-    <section className='bg-gray-50 pt-10 pb-20 px-6'>
+    <section id='features' className='bg-gray-50 pt-10 pb-20 px-6'>
       <div className='max-w-6xl mx-auto'>
+        <div className='text-center mb-10'>
+          <h2 className='text-4xl font-bold font-display text-gray-900'>
+            Why Choose FoodHub
+          </h2>
+          <p className='text-gray-600 mt-3 text-lg'>
+            Everything you need for a fast and reliable food experience.
+          </p>
+        </div>
+
         <div className='grid grid-cols-1 md:grid-cols-3 gap-10'>
           <div className='flex flex-col items-center text-center group'>
             <div className='flex items-center justify-center w-56 h-44 mb-6'>

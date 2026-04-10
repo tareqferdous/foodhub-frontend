@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 interface Category {
   id: string;
@@ -41,21 +41,67 @@ export default function Sidebar({
     search: activeFilters.search || "",
   });
 
-  const updateURL = (newFilters: typeof filters) => {
-    const params = new URLSearchParams();
+  useEffect(() => {
+    setFilters({
+      cuisine: activeFilters.cuisine || "",
+      dietary: activeFilters.dietary || "",
+      minPrice: activeFilters.minPrice || "",
+      maxPrice: activeFilters.maxPrice || "",
+      search: activeFilters.search || "",
+    });
+  }, [
+    activeFilters.cuisine,
+    activeFilters.dietary,
+    activeFilters.minPrice,
+    activeFilters.maxPrice,
+    activeFilters.search,
+  ]);
 
-    // Add only non-empty filters to URL
+  const updateURL = (newFilters: typeof filters, useReplace = false) => {
+    const params = new URLSearchParams(searchParams.toString());
+
     if (newFilters.cuisine) params.set("cuisine", newFilters.cuisine);
+    else params.delete("cuisine");
+
     if (newFilters.dietary) params.set("dietary", newFilters.dietary);
+    else params.delete("dietary");
+
     if (newFilters.minPrice) params.set("minPrice", newFilters.minPrice);
+    else params.delete("minPrice");
+
     if (newFilters.maxPrice) params.set("maxPrice", newFilters.maxPrice);
+    else params.delete("maxPrice");
+
     if (newFilters.search) params.set("search", newFilters.search);
+    else params.delete("search");
+
+    params.set("page", "1");
 
     // Use startTransition for smoother updates
     startTransition(() => {
-      router.push(`/meals?${params.toString()}`);
+      const nextUrl = `/meals?${params.toString()}`;
+      if (useReplace) {
+        router.replace(nextUrl);
+        return;
+      }
+      router.push(nextUrl);
     });
   };
+
+  useEffect(() => {
+    const currentSearch = activeFilters.search || "";
+
+    if (filters.search === currentSearch) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      updateURL({ ...filters, search: filters.search }, true);
+    }, 400);
+
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.search, activeFilters.search]);
 
   const handleCuisineChange = (cuisine: string) => {
     const newCuisine = filters.cuisine === cuisine ? "" : cuisine;
@@ -85,15 +131,26 @@ export default function Sidebar({
     };
     setFilters(clearedFilters);
     startTransition(() => {
-      router.push("/meals");
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("cuisine");
+      params.delete("dietary");
+      params.delete("minPrice");
+      params.delete("maxPrice");
+      params.delete("search");
+      params.set("page", "1");
+      router.push(`/meals?${params.toString()}`);
     });
   };
 
   const hasActiveFilters =
-    filters.cuisine || filters.dietary || filters.minPrice || filters.maxPrice;
+    filters.cuisine ||
+    filters.dietary ||
+    filters.minPrice ||
+    filters.maxPrice ||
+    filters.search;
 
   return (
-    <aside className='w-72 bg-white rounded-xl shadow-sm p-6 h-fit sticky top-24 hidden lg:block border border-gray-100'>
+    <aside className='w-full lg:w-72 bg-white rounded-xl shadow-sm p-4 sm:p-6 h-fit lg:sticky lg:top-24 border border-gray-100'>
       {/* Header */}
       <div className='flex items-center justify-between mb-6 pb-4 border-b-2 border-gray-100'>
         <div className='flex items-center gap-2'>
@@ -118,6 +175,7 @@ export default function Sidebar({
                 filters.cuisine,
                 filters.dietary,
                 filters.minPrice || filters.maxPrice,
+                filters.search,
               ].filter(Boolean).length
             }
           </span>
@@ -125,6 +183,35 @@ export default function Sidebar({
       </div>
 
       <div className='space-y-6'>
+        <div>
+          <h3 className='flex items-center gap-2 font-semibold text-[#e10101] mb-4 text-sm uppercase tracking-wide'>
+            <svg
+              className='w-4 h-4'
+              fill='none'
+              stroke='currentColor'
+              viewBox='0 0 24 24'>
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                strokeWidth={2}
+                d='M21 21l-4.35-4.35m1.85-5.65a7 7 0 11-14 0 7 7 0 0114 0z'
+              />
+            </svg>
+            Search
+          </h3>
+          <input
+            type='text'
+            value={filters.search}
+            onChange={(e) => {
+              const newFilters = { ...filters, search: e.target.value };
+              setFilters(newFilters);
+            }}
+            placeholder='Search meals...'
+            disabled={isPending}
+            className='w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#e10101] focus:ring-2 focus:ring-[#e10101]/20 outline-none transition-all text-sm'
+          />
+        </div>
+
         {/* Cuisines */}
         <div>
           <h3 className='flex items-center gap-2 font-semibold text-[#e10101] mb-4 text-sm uppercase tracking-wide'>
@@ -407,6 +494,34 @@ export default function Sidebar({
                       ...filters,
                       minPrice: "",
                       maxPrice: "",
+                    };
+                    setFilters(newFilters);
+                    updateURL(newFilters);
+                  }}
+                  className='hover:bg-white/20 rounded-full p-0.5 transition-colors'>
+                  <svg
+                    className='w-3 h-3'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'>
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M6 18L18 6M6 6l12 12'
+                    />
+                  </svg>
+                </button>
+              </span>
+            )}
+            {filters.search && (
+              <span className='inline-flex items-center gap-1 bg-[#e10101] text-white text-xs font-medium px-3 py-1.5 rounded-full'>
+                {filters.search}
+                <button
+                  onClick={() => {
+                    const newFilters = {
+                      ...filters,
+                      search: "",
                     };
                     setFilters(newFilters);
                     updateURL(newFilters);

@@ -2,7 +2,7 @@
 
 import { useCart } from "@/contexts/CartContext";
 import { authClient } from "@/lib/auth.client";
-import { ChevronDown, CloudCog, Menu, User, X } from "lucide-react";
+import { ChevronDown, Menu, User, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -18,7 +18,9 @@ type AppUser = {
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [hasProviderProfile, setHasProviderProfile] = useState<boolean | null>(null);
+  const [hasProviderProfile, setHasProviderProfile] = useState<boolean | null>(
+    null,
+  );
   const [profileRefreshTrigger, setProfileRefreshTrigger] = useState(0);
 
   const session = authClient.useSession();
@@ -95,6 +97,21 @@ export default function Navbar() {
               href='/providers'
               className='text-gray-700 hover:text-primary-600 font-medium transition'>
               Restaurants
+            </Link>
+            <Link
+              href='/about'
+              className='text-gray-700 hover:text-primary-600 font-medium transition'>
+              About
+            </Link>
+            <Link
+              href='/contact'
+              className='text-gray-700 hover:text-primary-600 font-medium transition'>
+              Contact
+            </Link>
+            <Link
+              href='/faq'
+              className='text-gray-700 hover:text-primary-600 font-medium transition'>
+              FAQ
             </Link>
           </div>
 
@@ -234,6 +251,16 @@ export default function Navbar() {
                 href='/about'
                 className='text-gray-700 hover:text-primary-600 font-medium'>
                 About
+              </Link>
+              <Link
+                href='/contact'
+                className='text-gray-700 hover:text-primary-600 font-medium'>
+                Contact
+              </Link>
+              <Link
+                href='/faq'
+                className='text-gray-700 hover:text-primary-600 font-medium'>
+                FAQ
               </Link>
 
               {isLoggedIn ? (

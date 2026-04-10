@@ -10,7 +10,7 @@ const Meals = async () => {
     return <div>Error loading meals</div>;
   }
   return (
-    <section className='py-16 bg-white'>
+    <section id='meals' className='py-16 bg-white'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='flex items-center justify-between mb-10'>
           <div>

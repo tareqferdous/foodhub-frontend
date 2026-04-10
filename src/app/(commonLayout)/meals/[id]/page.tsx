@@ -1,11 +1,13 @@
 import AddToCartButton from "@/components/modules/customer/AddToCartButton";
+import ShareMealButton from "@/components/modules/customer/ShareMealButton";
 import { mealService } from "@/service/meal.service";
+import { Meal } from "@/types/meal.type";
 import { Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-export type Review = {
+type Review = {
   id: string;
   rating: number;
   comment: string;
@@ -13,6 +15,16 @@ export type Review = {
   orderId: string;
   createdAt: string;
 };
+
+const FALLBACK_IMAGE =
+  "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=1200&h=900&fit=crop";
+
+const formatDate = (value: string) =>
+  new Date(value).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 
 const MealDetails = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
@@ -22,6 +34,7 @@ const MealDetails = async ({ params }: { params: Promise<{ id: string }> }) => {
     notFound();
   }
 
+  const meal = mealResponse.data;
   const {
     provider,
     category,
@@ -30,209 +43,293 @@ const MealDetails = async ({ params }: { params: Promise<{ id: string }> }) => {
     dietaryType,
     image,
     price,
-    reviews,
-  } = mealResponse.data;
+    reviews = [],
+  } = meal;
+
+  const avgRating =
+    reviews.length > 0
+      ? (
+          reviews.reduce(
+            (sum: number, review: Review) => sum + review.rating,
+            0,
+          ) / reviews.length
+        ).toFixed(1)
+      : null;
+
+  const relatedResponse = await mealService.getMeals({
+    cuisine: category?.name,
+    limit: "4",
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
+
+  const relatedMeals: Meal[] = (relatedResponse?.data?.data?.meals || [])
+    .filter((item: Meal) => item.id !== id)
+    .slice(0, 3);
+
+  const providerName = provider?.restaurantName || "FoodHub Kitchen";
+  const displayImage = image || FALLBACK_IMAGE;
 
   return (
-    <>
-      <div className='min-h-screen bg-[#FAF7F2] relative overflow-hidden'>
-        {/* Decorative background elements */}
-        <div className='absolute top-0 right-0 w-96 h-96 bg-linear-to-br from-amber-200/20 to-orange-300/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2' />
-        <div className='absolute bottom-0 left-0 w-96 h-96 bg-linear-to-tr from-rose-200/20 to-amber-200/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2' />
+    <div className='min-h-screen bg-[#F4F1EC]'>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 py-8 lg:py-12'>
+        <nav className='mb-6 flex items-center gap-2 text-sm'>
+          <Link
+            href='/'
+            className='text-neutral-500 hover:text-neutral-900 transition-colors'>
+            Home
+          </Link>
+          <span className='text-neutral-300'>/</span>
+          <Link
+            href='/meals'
+            className='text-neutral-500 hover:text-neutral-900 transition-colors'>
+            Meals
+          </Link>
+          <span className='text-neutral-300'>/</span>
+          <span className='text-neutral-900 truncate'>{title}</span>
+        </nav>
 
-        <div className='relative max-w-7xl mx-auto px-6 py-12 lg:py-20'>
-          {/* Breadcrumb */}
-          <nav className='mb-8 flex items-center gap-2 text-sm'>
-            <Link
-              href='/'
-              className='text-neutral-500 hover:text-neutral-900 transition-colors font-light tracking-wide'>
-              Home
-            </Link>
-            <span className='text-neutral-300'>/</span>
-            <Link
-              href='/meals'
-              className='text-neutral-500 hover:text-neutral-900 transition-colors font-light tracking-wide'>
-              Meals
-            </Link>
-            <span className='text-neutral-300'>/</span>
-            <span className='text-neutral-900 font-light tracking-wide'>
-              {title}
-            </span>
-          </nav>
+        <div className='grid lg:grid-cols-12 items-start gap-8 lg:gap-10'>
+          <section className='lg:col-span-7 space-y-4'>
+            <div className='relative aspect-[4/3] rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm'>
+              <Image
+                src={displayImage}
+                alt={title}
+                fill
+                className='object-cover'
+                priority
+              />
+            </div>
 
-          <div className='grid lg:grid-cols-2 gap-16 lg:gap-20'>
-            {/* Image Section */}
-            <div className='relative group'>
-              <div className='absolute inset-0 bg-linear-to-br from-amber-400/20 to-rose-400/20 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-700 -z-10' />
-              <div className='relative aspect-square rounded-3xl overflow-hidden shadow-2xl border border-white/50'>
-                <Image
-                  src={image}
-                  alt={title}
-                  fill
-                  className='object-cover transition-transform duration-700 group-hover:scale-105'
-                />
+            <div className='grid grid-cols-3 gap-3'>
+              {[0, 1, 2].map((index) => (
+                <div
+                  key={index}
+                  className='relative h-24 sm:h-28 rounded-xl overflow-hidden border border-gray-100 bg-white'>
+                  <Image
+                    src={displayImage}
+                    alt={`${title} preview ${index + 1}`}
+                    fill
+                    className='object-cover'
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
 
-                {/* Floating badge */}
-                <div className='absolute top-6 right-6 bg-white/95 backdrop-blur-sm px-5 py-2 rounded-full shadow-lg border border-amber-100'>
-                  <span className='text-sm font-light tracking-wider text-neutral-800'>
+          <section className='lg:col-span-5 lg:sticky lg:top-24 space-y-4'>
+            <div className='bg-white rounded-2xl border border-gray-100 shadow-sm p-5 lg:p-6'>
+              <p className='text-sm uppercase tracking-wider text-gray-500 mb-2'>
+                {providerName}
+              </p>
+              <h1 className='text-3xl lg:text-5xl font-semibold text-gray-900 leading-tight mb-4'>
+                {title}
+              </h1>
+
+              <div className='flex flex-wrap items-center gap-2 mb-6'>
+                {category?.name && (
+                  <span className='px-3 py-1 text-xs font-semibold rounded-full bg-red-50 text-red-700 border border-red-100'>
                     {category.name}
                   </span>
-                </div>
-              </div>
-
-              {/* Decorative corner accent */}
-              <div className='absolute -bottom-4 -left-4 w-32 h-32 bg-linear-to-br from-amber-300 to-orange-400 rounded-2xl opacity-10 -z-20 rotate-12' />
-            </div>
-
-            {/* Content Section */}
-            <div className='flex flex-col justify-center space-y-8'>
-              {/* Provider tag */}
-              <div className='inline-flex items-center gap-2 self-start'>
-                <div className='w-2 h-2 bg-amber-500 rounded-full animate-pulse' />
-                <span className='text-sm font-light tracking-[0.2em] uppercase text-neutral-600'>
-                  {provider.restaurantName}
-                </span>
-              </div>
-
-              {/* Title */}
-              <div>
-                <h1 className='text-5xl lg:text-6xl font-light text-neutral-900 mb-4 leading-tight tracking-tight'>
-                  {title}
-                </h1>
-                <div className='flex items-center gap-3'>
-                  <span className='inline-block px-4 py-1.5 bg-linear-to-r from-emerald-50 to-teal-50 text-emerald-700 rounded-full text-xs font-medium tracking-wide border border-emerald-100'>
+                )}
+                {dietaryType && (
+                  <span className='px-3 py-1 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100'>
                     {dietaryType}
                   </span>
-                </div>
+                )}
+                {avgRating && (
+                  <span className='inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full bg-amber-50 text-amber-700 border border-amber-100'>
+                    <Star className='w-3.5 h-3.5 fill-amber-500 text-amber-500' />
+                    {avgRating} ({reviews.length})
+                  </span>
+                )}
               </div>
 
-              {/* Description */}
-              <p className='text-lg text-neutral-600 leading-relaxed font-light max-w-xl'>
-                {description}
-              </p>
-
-              {/* Divider */}
-              <div className='w-full h-px bg-linear-to-r from-transparent via-neutral-200 to-transparent' />
-
-              {/* Price and quantity */}
-              <div className='flex items-end gap-8'>
-                <div>
-                  <span className='block text-sm font-light tracking-wider text-neutral-500 mb-2 uppercase'>
-                    Price
-                  </span>
-                  <div className='flex items-baseline gap-2'>
-                    <span className='text-5xl font-light text-neutral-900'>
-                      {Number(price).toFixed(2)}
-                    </span>
-                    <span className='text-neutral-400 font-light'>
-                      per serving
-                    </span>
-                  </div>
-                </div>
-
-                {/* <div>
-                  <span className='block text-sm font-light tracking-wider text-neutral-500 mb-3 uppercase'>
-                    Quantity
-                  </span>
-                  <div className='flex items-center gap-3 bg-white rounded-2xl border border-neutral-200 p-1.5 shadow-sm'>
-                    <button className='w-10 h-10 flex items-center justify-center rounded-xl hover:bg-neutral-50 transition-colors text-neutral-700'>
-                      <svg
-                        className='w-4 h-4'
-                        fill='none'
-                        viewBox='0 0 24 24'
-                        stroke='currentColor'>
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2}
-                          d='M20 12H4'
-                        />
-                      </svg>
-                    </button>
-                    <span className='w-12 text-center font-light text-lg text-neutral-900'>
-                      {quantity}
-                    </span>
-                    <button className='w-10 h-10 flex items-center justify-center rounded-xl hover:bg-neutral-50 transition-colors text-neutral-700'>
-                      <svg
-                        className='w-4 h-4'
-                        fill='none'
-                        viewBox='0 0 24 24'
-                        stroke='currentColor'>
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2}
-                          d='M12 4v16m8-8H4'
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </div> */}
+              <div className='mb-6'>
+                <p className='text-sm text-gray-500 mb-1'>Price</p>
+                <p className='text-5xl font-bold text-gray-900'>
+                  ৳ {Number(price).toFixed(2)}
+                </p>
               </div>
 
-              {/* Total */}
-              {/* <div className='flex items-baseline gap-3 pt-4'>
-                <span className='text-sm font-light tracking-wider text-neutral-500 uppercase'>
-                  Total
-                </span>
-                <span className='text-3xl font-light text-neutral-900'>
-                  ${(price * quantity).toFixed(2)}
-                </span>
-              </div> */}
-
-              {/* Action buttons */}
-              <AddToCartButton
-                mealId={id}
-                price={Number(price)}
-                title={title}
-                image={image}
-                providerName={provider.restaurantName}
-                providerId={provider.id}
-              />
-
-              {/* <button className='btn-primary w-full flex items-center justify-center gap-2'>
-                <ShoppingCart className='w-5 h-5' />
-                Add to Cart
-              </button> */}
+              <div className='grid sm:grid-cols-2 gap-3'>
+                <AddToCartButton
+                  mealId={id}
+                  price={Number(price)}
+                  title={title}
+                  image={displayImage}
+                  providerName={providerName}
+                  providerId={provider?.id || ""}
+                />
+                <ShareMealButton title={title} />
+              </div>
             </div>
-          </div>
+
+            <div className='bg-white rounded-2xl border border-gray-100 shadow-sm p-5 lg:p-6'>
+              <h2 className='text-lg font-semibold text-gray-900 mb-2'>
+                Overview / Description
+              </h2>
+              <p className='text-gray-700 leading-relaxed text-sm'>
+                {description ||
+                  "No additional description is available for this meal right now."}
+              </p>
+            </div>
+
+            <div className='bg-white rounded-2xl border border-gray-100 shadow-sm p-5 lg:p-6'>
+              <h2 className='text-lg font-semibold text-gray-900 mb-3'>
+                Key Information / Specs / Rules
+              </h2>
+              <div className='grid grid-cols-2 gap-3'>
+                <div className='rounded-xl bg-gray-50 p-3'>
+                  <p className='text-[11px] uppercase tracking-wide text-gray-500 mb-1'>
+                    Category
+                  </p>
+                  <p className='font-medium text-gray-900 text-sm'>
+                    {category?.name || "N/A"}
+                  </p>
+                </div>
+                <div className='rounded-xl bg-gray-50 p-3'>
+                  <p className='text-[11px] uppercase tracking-wide text-gray-500 mb-1'>
+                    Dietary
+                  </p>
+                  <p className='font-medium text-gray-900 text-sm'>
+                    {dietaryType || "N/A"}
+                  </p>
+                </div>
+                <div className='rounded-xl bg-gray-50 p-3'>
+                  <p className='text-[11px] uppercase tracking-wide text-gray-500 mb-1'>
+                    Provider
+                  </p>
+                  <p className='font-medium text-gray-900 text-sm'>
+                    {providerName}
+                  </p>
+                </div>
+                <div className='rounded-xl bg-gray-50 p-3'>
+                  <p className='text-[11px] uppercase tracking-wide text-gray-500 mb-1'>
+                    Reviews
+                  </p>
+                  <p className='font-medium text-gray-900 text-sm'>
+                    {reviews.length}
+                  </p>
+                </div>
+              </div>
+              <ul className='mt-4 text-sm text-gray-600 space-y-1'>
+                <li>Prices may vary by provider availability.</li>
+                <li>Check dietary details if you have restrictions.</li>
+                <li>Order acceptance depends on provider capacity.</li>
+              </ul>
+            </div>
+          </section>
         </div>
 
-        <div className='mt-12 max-w-7xl px-6'>
-          <h2 className='text-2xl font-bold mb-6'>Customer Reviews</h2>
-          <div className='space-y-4'>
-            {reviews.length > 0 ? (
-              reviews.map((review: Review) => (
-                <div key={review.id} className='card p-6'>
-                  <div className='flex items-start justify-between mb-3'>
-                    <div>
-                      {/* <div className='font-semibold'>{review.userName}</div> */}
+        <div className='mt-8 grid lg:grid-cols-12 gap-6'>
+          <section className='lg:col-span-8 bg-white rounded-2xl border border-gray-100 shadow-sm p-6'>
+            <h2 className='text-xl font-semibold text-gray-900 mb-4'>
+              Rating / Reviews / Feedback
+            </h2>
+
+            {avgRating ? (
+              <div className='mb-5 flex items-center gap-3'>
+                <span className='text-3xl font-bold text-gray-900'>
+                  {avgRating}
+                </span>
+                <div className='flex items-center gap-1'>
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-5 h-5 ${
+                        i < Math.round(Number(avgRating))
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className='text-sm text-gray-500'>
+                  ({reviews.length} reviews)
+                </span>
+              </div>
+            ) : (
+              <p className='text-sm text-gray-500 mb-5'>No rating yet.</p>
+            )}
+
+            <div className='space-y-4'>
+              {reviews.length > 0 ? (
+                reviews.map((review: Review) => (
+                  <div
+                    key={review.id}
+                    className='rounded-xl border border-gray-100 p-4'>
+                    <div className='flex items-start justify-between mb-2'>
                       <div className='text-sm text-gray-500'>
-                        {review.createdAt}
+                        {formatDate(review.createdAt)}
+                      </div>
+                      <div className='flex items-center gap-1'>
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${
+                              i < review.rating
+                                ? "text-yellow-400 fill-yellow-400"
+                                : "text-gray-300"
+                            }`}
+                          />
+                        ))}
                       </div>
                     </div>
-                    <div className='flex items-center gap-1'>
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-4 h-4 ${i < review.rating
-                            ? "text-yellow-400 fill-yellow-400"
-                            : "text-gray-300"
-                            }`}
-                        />
-                      ))}
-                    </div>
+                    <p className='text-gray-700 text-sm'>
+                      {review.comment || "No comment"}
+                    </p>
                   </div>
-                  <p className='text-gray-700'>{review.comment}</p>
-                </div>
-              ))
+                ))
+              ) : (
+                <p className='text-gray-600 text-sm'>No reviews yet.</p>
+              )}
+            </div>
+          </section>
+
+          <section className='lg:col-span-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-6'>
+            <h2 className='text-xl font-semibold text-gray-900 mb-4'>
+              Related / Suggested Items
+            </h2>
+
+            {relatedMeals.length > 0 ? (
+              <div className='space-y-3'>
+                {relatedMeals.map((relatedMeal) => (
+                  <Link
+                    key={relatedMeal.id}
+                    href={`/meals/${relatedMeal.id}`}
+                    className='flex items-center gap-3 rounded-xl border border-gray-100 p-2 hover:shadow-sm transition-shadow'>
+                    <div className='relative h-16 w-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0'>
+                      <Image
+                        src={relatedMeal.image || FALLBACK_IMAGE}
+                        alt={relatedMeal.title}
+                        fill
+                        className='object-cover'
+                      />
+                    </div>
+                    <div className='min-w-0'>
+                      <h3 className='font-semibold text-gray-900 text-sm truncate'>
+                        {relatedMeal.title}
+                      </h3>
+                      <p className='text-xs text-gray-500 truncate'>
+                        {relatedMeal.category?.name || category?.name || "Meal"}
+                      </p>
+                      <p className='text-[#e10101] font-semibold text-sm mt-1'>
+                        ৳ {Number(relatedMeal.price).toFixed(2)}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             ) : (
-              <p>No reviews yet.</p>
+              <p className='text-sm text-gray-600'>
+                No related meals found right now.
+              </p>
             )}
-          </div>
+          </section>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

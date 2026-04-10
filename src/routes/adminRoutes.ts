@@ -1,5 +1,11 @@
 import { SidebarMenuItem } from "@/types/route.types";
-import { Hamburger, Handbag, LayoutDashboard, Users } from "lucide-react";
+import {
+  Hamburger,
+  Handbag,
+  LayoutDashboard,
+  MessageSquare,
+  Users,
+} from "lucide-react";
 
 export const adminMenu: SidebarMenuItem[] = [
   {
@@ -21,5 +27,10 @@ export const adminMenu: SidebarMenuItem[] = [
     label: "Categories",
     href: "/admin/categories",
     icon: Hamburger,
+  },
+  {
+    label: "Messages",
+    href: "/admin/messages",
+    icon: MessageSquare,
   },
 ];

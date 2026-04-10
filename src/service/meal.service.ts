@@ -11,6 +11,11 @@ interface GetMealsParams {
   dietary?: string;
   minPrice?: string;
   maxPrice?: string;
+  search?: string;
+  page?: string;
+  limit?: string;
+  sortBy?: string;
+  sortOrder?: string;
 }
 
 export const mealService = {

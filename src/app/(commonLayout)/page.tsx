@@ -1,32 +1,30 @@
 import Category from "@/components/modules/Home/Category";
+import FaqPreview from "@/components/modules/Home/FaqPreview";
 import Features from "@/components/modules/Home/Features";
 import Hero from "@/components/modules/Home/Hero";
+import LiveOrderJourney from "@/components/modules/Home/LiveOrderJourney";
 import Meals from "@/components/modules/Home/Meals";
+import Newsletter from "@/components/modules/Home/Newsletter";
 import Providers from "@/components/modules/Home/Providers";
+import ServicesFlow from "@/components/modules/Home/ServicesFlow";
 import { userService } from "@/service/user.service";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const { data } = await userService.getSession();
+  await userService.getSession();
 
-  console.log("data", data);
   return (
     <div className='min-h-screen flex flex-col'>
-      {/* Hero Section */}
       <Hero />
-
-      {/* Categories */}
       <Category />
-
-      {/* Features */}
       <Features />
-
-      {/* Featured Meals */}
+      <ServicesFlow />
+      <LiveOrderJourney />
       <Meals />
-
-      {/* Featured Providers */}
       <Providers />
+      <FaqPreview />
+      <Newsletter />
     </div>
   );
 }
