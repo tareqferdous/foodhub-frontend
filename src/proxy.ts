@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { Roles } from "./constants/roles";
+import { advancedRoles, Roles } from "./constants/roles";
 import { userService } from "./service/user.service";
 
 export async function proxy(request: NextRequest) {
@@ -21,7 +21,11 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (role === Roles.admin) {
+  if (
+    role === Roles.admin ||
+    role === Roles.manager ||
+    role === Roles.organizer
+  ) {
     if (
       pathname.startsWith("/provider") ||
       pathname.startsWith("/cart") ||
@@ -47,8 +51,27 @@ export async function proxy(request: NextRequest) {
 
   if (role === Roles.customer) {
     if (pathname.startsWith("/admin") || pathname.startsWith("/provider")) {
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL("/dashboard", request.url));
     }
+  }
+
+  if (role === Roles.vendor) {
+    if (pathname.startsWith("/admin") || pathname.startsWith("/orders")) {
+      return NextResponse.redirect(new URL("/provider/dashboard", request.url));
+    }
+  }
+
+  if (
+    pathname === "/dashboard" &&
+    role &&
+    advancedRoles.includes(role) &&
+    role !== Roles.customer
+  ) {
+    if (role === Roles.provider || role === Roles.vendor) {
+      return NextResponse.redirect(new URL("/provider/dashboard", request.url));
+    }
+
+    return NextResponse.redirect(new URL("/admin", request.url));
   }
 
   return NextResponse.next();
@@ -60,6 +83,7 @@ export const config = {
     "/checkout",
     "/orders/:path*",
     "/profile",
+    "/dashboard",
     "/provider/:path*",
     "/admin/:path*",
   ],

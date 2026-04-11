@@ -47,6 +47,12 @@ interface MenuAddEditModalProps {
   handleSubmit: (e: React.FormEvent) => void;
   setShowAddModal: (open: boolean) => void;
   categories: Category[];
+  handleGenerateDescription: (params: {
+    title: string;
+    keyPoints: string;
+    categoryName?: string;
+    dietaryType?: DietaryType;
+  }) => Promise<string | null>;
 }
 
 const MenuAddEditModal = ({
@@ -57,9 +63,12 @@ const MenuAddEditModal = ({
   setFormData,
   handleSubmit,
   categories,
+  handleGenerateDescription,
 }: MenuAddEditModalProps) => {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [keyPoints, setKeyPoints] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -152,6 +161,42 @@ const MenuAddEditModal = ({
               <label className='block text-sm font-medium text-gray-700 mb-2'>
                 Description
               </label>
+              <div className='mb-2 flex flex-col gap-2 sm:flex-row'>
+                <input
+                  type='text'
+                  value={keyPoints}
+                  onChange={(e) => setKeyPoints(e.target.value)}
+                  className='w-full text-gray-700 rounded-md border px-3 py-2 text-sm transition-all duration-200 placeholder:text-gray-400 focus:outline-none focus:ring-2'
+                  placeholder='Key points (e.g. smoky flavor, creamy sauce, grilled chicken)'
+                />
+                <button
+                  type='button'
+                  onClick={async () => {
+                    if (!formData.title.trim()) return;
+
+                    setIsGenerating(true);
+                    const categoryName = categories.find(
+                      (c) => c.id === formData.categoryId,
+                    )?.name;
+
+                    const generated = await handleGenerateDescription({
+                      title: formData.title,
+                      keyPoints,
+                      categoryName,
+                      dietaryType: formData.dietaryType,
+                    });
+
+                    if (generated) {
+                      setFormData({ ...formData, description: generated });
+                    }
+
+                    setIsGenerating(false);
+                  }}
+                  disabled={isGenerating || !formData.title.trim()}
+                  className='whitespace-nowrap rounded-md bg-linear-to-r from-[#e10101] to-red-600 px-4 py-2 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60'>
+                  {isGenerating ? "Generating..." : "Generate with AI"}
+                </button>
+              </div>
               <textarea
                 required
                 value={formData.description}

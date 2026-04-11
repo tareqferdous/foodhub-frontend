@@ -1,15 +1,17 @@
 "use client";
 
 import {
-  Ban,
-  ChartColumnStacked,
   DollarSign,
   ShoppingBag,
   UsersRound,
   UtensilsCrossed,
-  X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+interface ChartPoint {
+  label: string;
+  value: number;
+}
 
 interface AdminData {
   users: {
@@ -30,32 +32,105 @@ interface AdminData {
     cancelled: number;
   };
   revenue: number;
+  charts: {
+    monthlyOrders: ChartPoint[];
+    monthlyRevenue: ChartPoint[];
+    orderStatus: ChartPoint[];
+    userDistribution: ChartPoint[];
+  };
+  recentOrders: {
+    id: string;
+    createdAt: string;
+    customerName: string;
+    providerName: string;
+    status: string;
+    totalPrice: number;
+  }[];
 }
+
+const Card = ({
+  title,
+  value,
+  subtitle,
+  icon,
+}: {
+  title: string;
+  value: string | number;
+  subtitle: string;
+  icon: React.ReactNode;
+}) => (
+  <article className='rounded-2xl border border-gray-200 bg-white p-5 shadow-sm'>
+    <div className='flex items-center justify-between'>
+      <div>
+        <p className='text-sm text-gray-500'>{title}</p>
+        <h3 className='mt-2 text-2xl font-bold text-gray-900'>{value}</h3>
+        <p className='mt-1 text-xs text-gray-400'>{subtitle}</p>
+      </div>
+      <div className='rounded-xl bg-red-50 p-3 text-red-600'>{icon}</div>
+    </div>
+  </article>
+);
+
+const maxValue = (points: ChartPoint[]) =>
+  points.length ? Math.max(...points.map((point) => point.value), 1) : 1;
+
+const Donut = ({ points, title }: { points: ChartPoint[]; title: string }) => {
+  const total = points.reduce((sum, item) => sum + item.value, 0);
+  const gradient = useMemo(() => {
+    const colors = ["#ef4444", "#f97316", "#0ea5e9", "#10b981", "#a855f7"];
+    let cursor = 0;
+
+    return points
+      .map((item, index) => {
+        const start = cursor;
+        const ratio = total ? (item.value / total) * 100 : 0;
+        cursor += ratio;
+        return `${colors[index % colors.length]} ${start}% ${cursor}%`;
+      })
+      .join(", ");
+  }, [points, total]);
+
+  return (
+    <article className='rounded-2xl border border-gray-200 bg-white p-5 shadow-sm'>
+      <h3 className='text-base font-semibold text-gray-900'>{title}</h3>
+      <div className='mt-4 flex items-center gap-5'>
+        <div
+          className='h-28 w-28 rounded-full'
+          style={{ background: `conic-gradient(${gradient})` }}>
+          <div className='m-auto mt-4 flex h-20 w-20 items-center justify-center rounded-full bg-white text-sm font-semibold text-gray-700'>
+            {total}
+          </div>
+        </div>
+        <div className='space-y-2'>
+          {points.map((item) => (
+            <p key={item.label} className='text-sm text-gray-700'>
+              <span className='font-semibold'>{item.label}:</span> {item.value}
+            </p>
+          ))}
+        </div>
+      </div>
+    </article>
+  );
+};
 
 export default function AdminDashboard() {
   const [data, setData] = useState<AdminData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const fetchAdminData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(
-          `/api/admin`,
-          {
-            credentials: "include",
-          },
-        );
+        const response = await fetch("/api/admin", {
+          credentials: "include",
+        });
 
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.data) {
-            setData(result.data);
-          }
+        if (!response.ok) return;
+
+        const result = await response.json();
+        if (result.success) {
+          setData(result.data);
         }
-      } catch (error) {
-        console.error("Error fetching admin data:", error);
       } finally {
         setIsLoading(false);
       }
@@ -64,198 +139,194 @@ export default function AdminDashboard() {
     fetchAdminData();
   }, []);
 
-  const formatCurrency = (amount: number) => {
-    return `৳${amount.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
-
   if (isLoading) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-rose-50 flex items-center justify-center'>
-        <div className='text-center'>
-          <div className='w-16 h-16 border-4 border-[#e10101] border-t-transparent rounded-full animate-spin mx-auto mb-4'></div>
-          <p className='text-gray-600'>Loading...</p>
-        </div>
+      <div className='min-h-[70vh] flex items-center justify-center'>
+        <div className='h-14 w-14 rounded-full border-4 border-red-500 border-t-transparent animate-spin' />
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-rose-50 flex items-center justify-center'>
-        <div className='text-center'>
-          <div className='text-5xl mb-4'>⚠️</div>
-          <h2 className='text-2xl font-bold text-gray-900 mb-2'>
-            Failed to Load Data
-          </h2>
-          <p className='text-gray-600'>Please try again later</p>
-        </div>
-      </div>
+      <div className='p-8 text-red-600'>Failed to load admin dashboard.</div>
     );
   }
 
+  const orderChartMax = maxValue(data.charts.monthlyOrders);
+  const revenueChartMax = maxValue(data.charts.monthlyRevenue);
+
   return (
-    <div className='min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-rose-50'>
-      {/* Background decorative elements */}
-      <div className='fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20'>
-        <div className='absolute top-20 right-20 w-96 h-96 bg-red-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse' />
-        <div className='absolute bottom-20 left-20 w-96 h-96 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000' />
+    <section className='px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10'>
+      <div className='mb-8'>
+        <h1 className='text-2xl md:text-3xl font-bold text-gray-900'>
+          Admin Dashboard Home
+        </h1>
+        <p className='mt-1 text-sm md:text-base text-gray-600'>
+          Real-time insights from your platform data
+        </p>
       </div>
 
-      <div className='relative z-10 max-w-7xl mx-auto px-6 py-12'>
-        {/* Header */}
-        <div className='mb-8'>
-          <h1 className='text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-[#e10101] to-red-900 bg-clip-text text-transparent mb-2'>
-            Admin Dashboard
-          </h1>
-          <p className='text-gray-600'>System Overview & Management</p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>
-          {/* Total Revenue */}
-          <div className='bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300 lg:col-span-3'>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-4'>
-                <div className='w-14 h-14 bg-gradient-to-br from-[#e10101] to-red-600 rounded-2xl flex items-center justify-center'>
-                  <DollarSign className='w-7 h-7 text-white' />
-                </div>
-              </div>
-              <h3 className='text-gray-500 text-sm font-medium mb-1'>
-                Total Revenue
-              </h3>
-              <p className='text-4xl font-bold text-[#e10101]'>
-                {formatCurrency(data.revenue)}
-              </p>
-            </div>
-          </div>
-
-          {/* Total Users */}
-          <div className='bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300'>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-4'>
-                <div className='w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center'>
-                  <UsersRound className='w-7 h-7 text-white' />
-                </div>
-              </div>
-              <h3 className='text-gray-500 text-sm font-medium mb-1'>
-                Total Users
-              </h3>
-              <p className='text-3xl font-bold text-gray-900 mb-3'>
-                {data.users.total}
-              </p>
-              <div className='flex gap-3 text-xs'>
-                <span className='px-2 py-1 bg-green-100 text-green-700 rounded-full font-medium'>
-                  {data.users.customers} Customers
-                </span>
-                <span className='px-2 py-1 bg-purple-100 text-purple-700 rounded-full font-medium'>
-                  {data.users.providers} Providers
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Total Orders */}
-          <div className='bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300'>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-4'>
-                <div className='w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center'>
-                  <ShoppingBag className='w-7 h-7 text-white' />
-                </div>
-              </div>
-              <h3 className='text-gray-500 text-sm font-medium mb-1'>
-                Total Orders
-              </h3>
-              <p className='text-3xl font-bold text-gray-900 mb-3'>
-                {data.orders.total}
-              </p>
-              <div className='flex gap-2 text-xs'>
-                <span className='px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full font-medium'>
-                  {data.orders.pending} Pending
-                </span>
-                <span className='px-2 py-1 bg-green-100 text-green-700 rounded-full font-medium'>
-                  {data.orders.delivered} Done
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Total Meals */}
-          <div className='bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300'>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-4'>
-                <div className='w-14 h-14 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center'>
-                  <UtensilsCrossed className='w-7 h-7 text-white' />
-                </div>
-              </div>
-              <h3 className='text-gray-500 text-sm font-medium mb-1'>
-                Total Meals
-              </h3>
-              <p className='text-3xl font-bold text-gray-900 mb-3'>
-                {data.meals.total}
-              </p>
-              <div className='flex gap-2 text-xs'>
-                <span className='px-2 py-1 bg-green-100 text-green-700 rounded-full font-medium'>
-                  {data.meals.active} Active
-                </span>
-                <span className='px-2 py-1 bg-gray-100 text-gray-700 rounded-full font-medium'>
-                  {data.meals.total - data.meals.active} Inactive
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Suspended Users */}
-          <div className='bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300'>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-4'>
-                <div className='w-14 h-14 bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl flex items-center justify-center'>
-                  <Ban className='w-7 h-7 text-white' />
-                </div>
-              </div>
-              <h3 className='text-gray-500 text-sm font-medium mb-1'>
-                Suspended Users
-              </h3>
-              <p className='text-3xl font-bold text-red-600'>
-                {data.users.suspended}
-              </p>
-            </div>
-          </div>
-
-          {/* Categories */}
-          <div className='bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300'>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-4'>
-                <div className='w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center'>
-                  <ChartColumnStacked className='w-7 h-7 text-white' />
-                </div>
-              </div>
-              <h3 className='text-gray-500 text-sm font-medium mb-1'>
-                Categories
-              </h3>
-              <p className='text-3xl font-bold text-gray-900'>
-                {data.categories}
-              </p>
-            </div>
-          </div>
-
-          {/* Cancelled Orders */}
-          <div className='bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300'>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-4'>
-                <div className='w-14 h-14 bg-gradient-to-br from-gray-500 to-slate-600 rounded-2xl flex items-center justify-center'>
-                  <X className='w-7 h-7 text-white' />
-                </div>
-              </div>
-              <h3 className='text-gray-500 text-sm font-medium mb-1'>
-                Cancelled Orders
-              </h3>
-              <p className='text-3xl font-bold text-gray-900'>
-                {data.orders.cancelled}
-              </p>
-            </div>
-          </div>
-        </div>
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4'>
+        <Card
+          title='Total Revenue'
+          value={`Tk ${Number(data.revenue).toLocaleString("en-BD")}`}
+          subtitle='Delivered order revenue'
+          icon={<DollarSign className='h-5 w-5' />}
+        />
+        <Card
+          title='Total Users'
+          value={data.users.total}
+          subtitle={`${data.users.customers} customers, ${data.users.providers} providers`}
+          icon={<UsersRound className='h-5 w-5' />}
+        />
+        <Card
+          title='Total Orders'
+          value={data.orders.total}
+          subtitle={`${data.orders.pending} pending`}
+          icon={<ShoppingBag className='h-5 w-5' />}
+        />
+        <Card
+          title='Total Meals'
+          value={data.meals.total}
+          subtitle={`${data.meals.active} active now`}
+          icon={<UtensilsCrossed className='h-5 w-5' />}
+        />
       </div>
-    </div>
+
+      <div className='mt-8 grid grid-cols-1 gap-6 xl:grid-cols-3'>
+        <article className='rounded-2xl border border-gray-200 bg-white p-5 shadow-sm xl:col-span-2'>
+          <h3 className='text-lg font-semibold text-gray-900'>
+            Order Volume (Bar)
+          </h3>
+          <div className='mt-5 grid grid-cols-6 gap-3'>
+            {data.charts.monthlyOrders.map((point) => (
+              <div
+                key={point.label}
+                className='flex flex-col items-center gap-2'>
+                <div className='flex h-36 items-end'>
+                  <div
+                    className='w-7 rounded-t-md bg-linear-to-t from-red-500 to-orange-400'
+                    style={{
+                      height: `${Math.max((point.value / orderChartMax) * 100, 8)}%`,
+                    }}
+                  />
+                </div>
+                <p className='text-xs text-gray-500'>{point.label}</p>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <Donut points={data.charts.orderStatus} title='Order Status (Donut)' />
+      </div>
+
+      <div className='mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3'>
+        <article className='rounded-2xl border border-gray-200 bg-white p-5 shadow-sm xl:col-span-2'>
+          <h3 className='text-lg font-semibold text-gray-900'>
+            Monthly Revenue (Line)
+          </h3>
+          <svg viewBox='0 0 600 220' className='mt-4 h-56 w-full'>
+            {data.charts.monthlyRevenue.map((point, index) => {
+              if (index === 0) return null;
+
+              const prev = data.charts.monthlyRevenue[index - 1];
+              const x1 =
+                ((index - 1) / (data.charts.monthlyRevenue.length - 1)) * 560 +
+                20;
+              const y1 = 180 - (prev.value / revenueChartMax) * 140;
+              const x2 =
+                (index / (data.charts.monthlyRevenue.length - 1)) * 560 + 20;
+              const y2 = 180 - (point.value / revenueChartMax) * 140;
+
+              return (
+                <line
+                  key={`${point.label}-line`}
+                  x1={x1}
+                  y1={y1}
+                  x2={x2}
+                  y2={y2}
+                  stroke='#ef4444'
+                  strokeWidth='3'
+                />
+              );
+            })}
+            {data.charts.monthlyRevenue.map((point, index) => {
+              const x =
+                (index / (data.charts.monthlyRevenue.length - 1)) * 560 + 20;
+              const y = 180 - (point.value / revenueChartMax) * 140;
+              return (
+                <g key={point.label}>
+                  <circle cx={x} cy={y} r='4' fill='#ef4444' />
+                  <text
+                    x={x}
+                    y='205'
+                    textAnchor='middle'
+                    className='fill-gray-500 text-[11px]'>
+                    {point.label}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </article>
+
+        <Donut
+          points={data.charts.userDistribution}
+          title='User Mix (Pie/Donut)'
+        />
+      </div>
+
+      <article className='mt-8 rounded-2xl border border-gray-200 bg-white p-4 md:p-5 shadow-sm'>
+        <h3 className='text-base md:text-lg font-semibold text-gray-900'>
+          Recent Orders
+        </h3>
+        <div className='mt-4 -mx-4 md:mx-0 overflow-x-auto rounded-lg'>
+          <table className='min-w-full text-xs md:text-sm'>
+            <thead>
+              <tr className='border-b border-gray-200 text-left text-gray-500 bg-gray-50'>
+                <th className='py-2 md:py-3 px-3 md:px-4 font-semibold text-xs md:text-sm'>
+                  Order ID
+                </th>
+                <th className='py-2 md:py-3 px-3 md:px-4 font-semibold text-xs md:text-sm hidden sm:table-cell'>
+                  Customer
+                </th>
+                <th className='py-2 md:py-3 px-3 md:px-4 font-semibold text-xs md:text-sm hidden lg:table-cell'>
+                  Provider
+                </th>
+                <th className='py-2 md:py-3 px-3 md:px-4 font-semibold text-xs md:text-sm'>
+                  Status
+                </th>
+                <th className='py-2 md:py-3 px-3 md:px-4 font-semibold text-xs md:text-sm hidden md:table-cell'>
+                  Amount
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.recentOrders.map((order) => (
+                <tr key={order.id} className='border-b border-gray-100'>
+                  <td className='py-3 pr-4 font-medium text-gray-900'>
+                    #{order.id.slice(0, 8)}
+                  </td>
+                  <td className='py-3 pr-4 text-gray-700'>
+                    {order.customerName}
+                  </td>
+                  <td className='py-3 pr-4 text-gray-700'>
+                    {order.providerName}
+                  </td>
+                  <td className='py-3 pr-4 text-gray-700'>{order.status}</td>
+                  <td className='py-3 pr-4 text-gray-700'>
+                    Tk {order.totalPrice.toLocaleString("en-BD")}
+                  </td>
+                  <td className='py-3 pr-4 text-gray-500'>
+                    {new Date(order.createdAt).toLocaleDateString("en-BD")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
   );
 }

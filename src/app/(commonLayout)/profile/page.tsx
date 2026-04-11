@@ -17,7 +17,7 @@ interface User {
   createdAt: Date;
   updatedAt: Date;
 
-  role?: "CUSTOMER" | "PROVIDER";
+  role?: "CUSTOMER" | "PROVIDER" | "ADMIN" | "MANAGER" | "VENDOR" | "ORGANIZER";
   status?: "ACTIVE" | "BLOCKED";
 }
 
@@ -59,12 +59,9 @@ export default function ProfilePage() {
   const fetchProviderProfile = async () => {
     setIsLoadingProfile(true);
     try {
-      const response = await fetch(
-        `/api/providers/profile`,
-        {
-          credentials: "include",
-        },
-      );
+      const response = await fetch(`/api/providers/profile`, {
+        credentials: "include",
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -92,31 +89,29 @@ export default function ProfilePage() {
   // Update user profile (name, email, image)
   const updateUserProfile = async () => {
     try {
-      const response = await fetch(
-        `/api/profile`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            name: editForm.name,
-            email: editForm.email,
-            // image: imagePreview,
-          }),
+      const response = await fetch(`/api/profile`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        credentials: "include",
+        body: JSON.stringify({
+          name: editForm.name,
+          email: editForm.email,
+          // image: imagePreview,
+        }),
+      });
 
       if (response.ok) {
-        const data = await response.json();
+        const payload = await response.json();
+        const updatedData = payload?.data;
         // Immediately update local state
         setUser({
           ...user!,
-          name: data.name || editForm.name,
-          email: data.email || editForm.email,
+          name: updatedData?.name || editForm.name,
+          email: updatedData?.email || editForm.email,
           // image: data.image || imagePreview,
-          updatedAt: data.updatedAt || new Date().toISOString(),
+          updatedAt: updatedData?.updatedAt || new Date().toISOString(),
         });
         // Update image preview with server response
         // if (data.image) {
@@ -137,22 +132,19 @@ export default function ProfilePage() {
   const createProviderProfile = async () => {
     const toastId = toast.loading("Creating provider profile...");
     try {
-      const response = await fetch(
-        `/api/providers`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            restaurantName: editForm.restaurantName,
-            description: editForm.description,
-            address: editForm.address,
-            phone: editForm.phone,
-          }),
+      const response = await fetch(`/api/providers`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        credentials: "include",
+        body: JSON.stringify({
+          restaurantName: editForm.restaurantName,
+          description: editForm.description,
+          address: editForm.address,
+          phone: editForm.phone,
+        }),
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -189,22 +181,19 @@ export default function ProfilePage() {
   const updateProviderProfile = async () => {
     const toastId = toast.loading("Updating provider profile...");
     try {
-      const response = await fetch(
-        `/api/providers`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            restaurantName: editForm.restaurantName,
-            description: editForm.description,
-            address: editForm.address,
-            phone: editForm.phone,
-          }),
+      const response = await fetch(`/api/providers`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        credentials: "include",
+        body: JSON.stringify({
+          restaurantName: editForm.restaurantName,
+          description: editForm.description,
+          address: editForm.address,
+          phone: editForm.phone,
+        }),
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -357,10 +346,12 @@ export default function ProfilePage() {
   // Loading state
   if (isPending || (currentRole === "PROVIDER" && !hasFetchedProfile)) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-rose-50 flex items-center justify-center'>
+      <div className='min-h-screen bg-linear-to-br from-red-50 via-orange-50 to-rose-50 flex items-center justify-center'>
         <div className='text-center'>
           <div className='w-16 h-16 border-4 border-[#e10101] border-t-transparent rounded-full animate-spin mx-auto mb-4'></div>
-          <p className='text-gray-600'>Loading...</p>
+          <p className='text-gray-600 text-sm md:text-base'>
+            Loading your profile...
+          </p>
         </div>
       </div>
     );
@@ -369,36 +360,36 @@ export default function ProfilePage() {
   // Not logged in state
   if (!user) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-rose-50 flex items-center justify-center'>
-        <div className='text-center'>
+      <div className='min-h-screen bg-linear-to-br from-red-50 via-orange-50 to-rose-50 flex items-center justify-center px-4'>
+        <div className='text-center max-w-sm'>
           <div className='text-5xl mb-4'>🔒</div>
           <h2 className='text-2xl font-bold text-gray-900 mb-2'>
             Login Required
           </h2>
-          <p className='text-gray-600'>Please log in first</p>
+          <p className='text-gray-600'>Please log in to access your profile</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-rose-50'>
+    <div className='min-h-screen bg-linear-to-br from-red-50 via-orange-50 to-rose-50'>
       {/* Background decorative elements */}
       <div className='fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20'>
         <div className='absolute top-20 right-20 w-96 h-96 bg-red-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse' />
         <div className='absolute bottom-20 left-20 w-96 h-96 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000' />
       </div>
 
-      <div className='relative z-10 max-w-6xl mx-auto px-6 py-12'>
+      <div className='relative z-10 mx-auto w-full max-w-screen-2xl px-4 py-8 md:px-6 lg:py-10'>
         {/* Header */}
         <ProfileHeader currentRole={currentRole!} />
 
-        <div className='grid lg:grid-cols-3 gap-6'>
+        <div className='grid gap-4 md:gap-6 lg:grid-cols-12'>
           {/* Left Column - Profile Card */}
-          <div className='lg:col-span-1'>
+          <div className='lg:col-span-4 xl:col-span-3'>
             <div className='bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100'>
               {/* Gradient Header */}
-              <div className='relative h-32 bg-gradient-to-br from-[#e10101] via-red-600 to-rose-600'>
+              <div className='relative h-32 bg-linear-to-br from-[#e10101] via-red-600 to-rose-600'>
                 <div className='absolute inset-0 flex items-center justify-center'>
                   {/* <div className='text-6xl font-bold text-white/20 select-none'>
                     {currentRole === "PROVIDER" && providerProfile
@@ -444,6 +435,7 @@ export default function ProfilePage() {
             handleSave={handleSave}
             currentRole={currentRole || "CUSTOMER"}
             user={user}
+            className='lg:col-span-8 xl:col-span-9'
           />
         </div>
       </div>

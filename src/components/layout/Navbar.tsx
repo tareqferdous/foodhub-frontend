@@ -12,7 +12,7 @@ type AppUser = {
   id: string;
   name: string;
   email: string;
-  role: "CUSTOMER" | "PROVIDER" | "ADMIN";
+  role: "CUSTOMER" | "PROVIDER" | "ADMIN" | "MANAGER" | "VENDOR" | "ORGANIZER";
 };
 
 export default function Navbar() {
@@ -169,6 +169,13 @@ export default function Navbar() {
                       </Link>
                       {userRole === "CUSTOMER" && (
                         <Link
+                          href='/dashboard'
+                          className='block px-4 py-2 text-gray-700 hover:bg-gray-50'>
+                          Dashboard
+                        </Link>
+                      )}
+                      {userRole === "CUSTOMER" && (
+                        <Link
                           href='/orders'
                           className='block px-4 py-2 text-gray-700 hover:bg-gray-50'>
                           My Orders
@@ -197,6 +204,20 @@ export default function Navbar() {
                           href='/admin'
                           className='block px-4 py-2 text-gray-700 hover:bg-gray-50'>
                           Admin Panel
+                        </Link>
+                      )}
+                      {(userRole === "MANAGER" || userRole === "ORGANIZER") && (
+                        <Link
+                          href='/admin'
+                          className='block px-4 py-2 text-gray-700 hover:bg-gray-50'>
+                          Management Panel
+                        </Link>
+                      )}
+                      {userRole === "VENDOR" && (
+                        <Link
+                          href='/provider/dashboard'
+                          className='block px-4 py-2 text-gray-700 hover:bg-gray-50'>
+                          Vendor Panel
                         </Link>
                       )}
                       <hr className='my-2' />
@@ -287,6 +308,11 @@ export default function Navbar() {
                   )}
                   {userRole === "CUSTOMER" && (
                     <>
+                      <Link
+                        href='/dashboard'
+                        className='text-gray-700 hover:text-primary-600 font-medium'>
+                        Dashboard
+                      </Link>
                       <Link
                         href='/cart'
                         className='text-gray-700 hover:text-primary-600 font-medium flex items-center justify-between'>

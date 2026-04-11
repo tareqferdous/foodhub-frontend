@@ -105,12 +105,9 @@ export default function ManageMenuPage() {
     const toastId = toast.loading("Loading menu...");
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `/api/providers/dashboard`,
-        {
-          credentials: "include",
-        },
-      );
+      const response = await fetch(`/api/providers/dashboard`, {
+        credentials: "include",
+      });
 
       if (response.ok) {
         const result: ApiResponse = await response.json();
@@ -129,10 +126,9 @@ export default function ManageMenuPage() {
   const fetchCategories = async () => {
     const toastId = toast.loading("Loading categories...");
     try {
-      const response = await fetch(
-        `/api/categories`,
-        { credentials: "include" },
-      );
+      const response = await fetch(`/api/categories`, {
+        credentials: "include",
+      });
       if (response.ok) {
         const result: CategoriesApiResponse = await response.json();
         setCategories(result.data);
@@ -223,19 +219,49 @@ export default function ManageMenuPage() {
   const handleDelete = async (id: string) => {
     const toastId = toast.loading("Deleting item...");
     try {
-      const response = await fetch(
-        `/api/meals/${id}`,
-        {
-          method: "DELETE",
-          credentials: "include",
-        },
-      );
+      const response = await fetch(`/api/meals/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
       if (response.ok) {
         toast.success("Item deleted successfully!", { id: toastId });
         fetchProvider();
       }
     } catch (error) {
       toast.error("Error deleting item. Please try again.", { id: toastId });
+    }
+  };
+
+  const handleGenerateDescription = async (params: {
+    title: string;
+    keyPoints: string;
+    categoryName?: string;
+    dietaryType?: DietaryType;
+  }) => {
+    const toastId = toast.loading("Generating description...");
+
+    try {
+      const response = await fetch(`/api/meals/generate-description`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(params),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        toast.error("Failed to generate description", { id: toastId });
+        return null;
+      }
+
+      toast.success("Description generated", { id: toastId });
+      return result.data?.description || null;
+    } catch {
+      toast.error("Failed to generate description", { id: toastId });
+      return null;
     }
   };
 
@@ -301,6 +327,7 @@ export default function ManageMenuPage() {
           setFormData={setFormData}
           handleSubmit={handleSubmit}
           categories={categories}
+          handleGenerateDescription={handleGenerateDescription}
         />
       )}
     </div>

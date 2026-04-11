@@ -92,4 +92,38 @@ export const mealService = {
       return { data: null, error: { message: "Something went wrong" } };
     }
   },
+
+  getRecommendedMeals: async function () {
+    try {
+      const res = await fetch(`${API_URL}/profile/recommendations`, {
+        cache: "no-store",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        return {
+          data: null,
+          error: { message: `Failed to fetch recommendations (${res.status})` },
+        };
+      }
+
+      const data = await res.json();
+      if (!data.success) {
+        return {
+          data: null,
+          error: { message: data.message || "Failed to fetch recommendations" },
+        };
+      }
+
+      return { data, error: null };
+    } catch (err) {
+      console.error("Error in getRecommendedMeals:", err);
+      return {
+        data: null,
+        error: {
+          message: err instanceof Error ? err.message : "Something Went Wrong",
+        },
+      };
+    }
+  },
 };

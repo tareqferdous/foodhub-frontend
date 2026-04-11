@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FoodHub Frontend
 
-## Getting Started
+FoodHub is a role-based food delivery platform built with Next.js, TypeScript, Tailwind CSS, and Better Auth.
 
-First, run the development server:
+## Features
+
+- Customer, provider, and admin dashboards
+- Role-aware navbar, sidebar, and route protection
+- Homepage with featured meals, providers, FAQs, and newsletter section
+- AI chat assistant on the homepage
+- Personalized meal recommendations for customers
+- Provider meal description generator
+- Responsive UI for mobile, tablet, and desktop
+
+## Prerequisites
+
+- Node.js 20+
+- npm
+- A running FoodHub backend
+
+## Setup
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Configure environment variables in `.env.local`:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_AUTH_URL=http://localhost:5000/api/auth
+NEXT_PUBLIC_IMGBB_API_KEY=your_imgbb_key
+```
+
+3. Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev` - start the Next.js dev server
+- `npm run build` - build for production
+- `npm run start` - run the production build
+- `npm run lint` - run ESLint
 
-## Learn More
+## Key Routes
 
-To learn more about Next.js, take a look at the following resources:
+- `/` - homepage
+- `/dashboard` - customer dashboard
+- `/provider/dashboard` - provider dashboard
+- `/provider/menu` - provider menu management
+- `/admin` - admin dashboard
+- `/profile` - editable profile page
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- The frontend proxies API requests through `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_AUTH_URL`.
+- AI chat and recommendation features require the backend to be running with `OPENROUTER_API_KEY` configured.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

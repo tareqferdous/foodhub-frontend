@@ -1,7 +1,8 @@
-"use client"
+"use client";
 
-import { Roles } from "@/constants/roles";
+import { advancedRoles, Roles } from "@/constants/roles";
 import { adminMenu } from "@/routes/adminRoutes";
+import { customerMenu } from "@/routes/customerRoutes";
 import { providerMenu } from "@/routes/providerRoutes";
 import { SidebarMenuItem } from "@/types/route.types";
 import Link from "next/link";
@@ -11,13 +12,19 @@ const DashboardSidebar = ({ user }: { user: { role: string } }) => {
 
   switch (user.role) {
     case Roles.admin:
+    case Roles.manager:
+    case Roles.organizer:
       routes = adminMenu;
       break;
     case Roles.provider:
+    case Roles.vendor:
       routes = providerMenu;
       break;
+    case Roles.customer:
+      routes = customerMenu;
+      break;
     default:
-      routes = [];
+      routes = advancedRoles.includes(user.role) ? adminMenu : customerMenu;
       break;
   }
 
@@ -40,7 +47,7 @@ const DashboardSidebar = ({ user }: { user: { role: string } }) => {
             <Link
               key={item.href}
               href={item.href}
-              className='flex items-center gap-3 px-4 py-3 text-gray-900 bg-gradient-to-r from-red-50 to-orange-50 rounded-xl border border-red-100 font-semibold'>
+              className='flex items-center gap-3 px-4 py-3 text-gray-900 bg-linear-to-r from-red-50 to-orange-50 rounded-xl border border-red-100 font-semibold'>
               <item.icon size={20} className='text-[#e10101]' />
 
               <span>{item.label}</span>

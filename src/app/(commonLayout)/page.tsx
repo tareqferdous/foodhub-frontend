@@ -1,3 +1,4 @@
+import ChatWidget from "@/components/ChatWidget";
 import Category from "@/components/modules/Home/Category";
 import FaqPreview from "@/components/modules/Home/FaqPreview";
 import Features from "@/components/modules/Home/Features";
@@ -6,6 +7,7 @@ import LiveOrderJourney from "@/components/modules/Home/LiveOrderJourney";
 import Meals from "@/components/modules/Home/Meals";
 import Newsletter from "@/components/modules/Home/Newsletter";
 import Providers from "@/components/modules/Home/Providers";
+import RecommendedMeals from "@/components/modules/Home/RecommendedMeals";
 import ServicesFlow from "@/components/modules/Home/ServicesFlow";
 import { userService } from "@/service/user.service";
 
@@ -22,9 +24,11 @@ export default async function HomePage() {
       <ServicesFlow />
       <LiveOrderJourney />
       <Meals />
+      <RecommendedMeals />
       <Providers />
       <FaqPreview />
       <Newsletter />
+      <ChatWidget />
     </div>
   );
 }

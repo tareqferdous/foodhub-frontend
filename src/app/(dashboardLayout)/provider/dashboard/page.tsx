@@ -1,87 +1,107 @@
 "use client";
 
-import { authClient } from "@/lib/auth.client";
-import { useEffect, useState } from "react";
+import { DollarSign, ShoppingBag, Store, UtensilsCrossed } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
-interface Meal {
-  id: string;
-  title: string;
-  description: string | null;
-  price: string;
-  image: string;
-  dietaryType: "VEG" | "NON_VEG" | "HALAL";
-  categoryId: string;
-  providerId: string;
-  isAvailable: boolean;
-  createdAt: string;
-  category?: {
+interface ChartPoint {
+  label: string;
+  value: number;
+}
+
+interface ProviderDashboardData {
+  provider: {
     id: string;
-    name: string;
+    restaurantName: string;
+  };
+  stats: {
+    activeMeals: number;
+    pendingOrders: number;
+    deliveredOrders: number;
+    totalRevenue: number;
+  };
+  charts: {
+    monthlyOrders: ChartPoint[];
+    monthlyRevenue: ChartPoint[];
+    orderStatus: ChartPoint[];
+    mealAvailability: ChartPoint[];
+  };
+  recentOrders: {
+    id: string;
+    customerName: string;
+    status: string;
+    totalPrice: number;
     createdAt: string;
-  };
-  _count?: {
-    orderItems: number;
-  };
+  }[];
+  topMeals: {
+    id: string;
+    title: string;
+    category: string;
+    price: number;
+    isAvailable: boolean;
+    totalOrders: number;
+  }[];
 }
 
-interface Order {
-  id: string;
-  customerId: string;
-  providerId: string;
-  totalPrice: string;
-  deliveryAddress: string;
-  status: "PLACED" | "DELIVERED" | "CANCELLED";
-  createdAt: string;
-}
+const maxValue = (points: ChartPoint[]) =>
+  points.length ? Math.max(...points.map((point) => point.value), 1) : 1;
 
-interface Provider {
-  id: string;
-  restaurantName: string;
-  meals?: Meal[];
-  orders?: Order[];
-}
+const Donut = ({ points, title }: { points: ChartPoint[]; title: string }) => {
+  const total = points.reduce((sum, item) => sum + item.value, 0);
+  const gradient = useMemo(() => {
+    const colors = ["#ef4444", "#f97316", "#10b981", "#0ea5e9"];
+    let cursor = 0;
 
-interface Stats {
-  activeMeals: number;
-  pendingOrders: number;
-  deliveredOrders: number;
-  totalRevenue: string;
-}
+    return points
+      .map((item, index) => {
+        const start = cursor;
+        const ratio = total ? (item.value / total) * 100 : 0;
+        cursor += ratio;
+        return `${colors[index % colors.length]} ${start}% ${cursor}%`;
+      })
+      .join(", ");
+  }, [points, total]);
 
-interface DashboardData {
-  provider: Provider;
-  stats: Stats;
-}
+  return (
+    <article className='rounded-2xl border border-gray-200 bg-white p-5 shadow-sm'>
+      <h3 className='text-base font-semibold text-gray-900'>{title}</h3>
+      <div className='mt-4 flex items-center gap-5'>
+        <div
+          className='h-28 w-28 rounded-full'
+          style={{ background: `conic-gradient(${gradient})` }}>
+          <div className='m-auto mt-4 flex h-20 w-20 items-center justify-center rounded-full bg-white text-sm font-semibold text-gray-700'>
+            {total}
+          </div>
+        </div>
+        <div className='space-y-2'>
+          {points.map((item) => (
+            <p key={item.label} className='text-sm text-gray-700'>
+              <span className='font-semibold'>{item.label}:</span> {item.value}
+            </p>
+          ))}
+        </div>
+      </div>
+    </article>
+  );
+};
 
 export default function ProviderDashboard() {
-  const [data, setData] = useState<DashboardData | null>(null);
+  const [data, setData] = useState<ProviderDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const { data: session } = authClient.useSession();
-
-  // Fetch dashboard data
   useEffect(() => {
     const fetchDashboard = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(
-          `/api/providers/dashboard`,
-          {
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-        );
+        const response = await fetch("/api/providers/dashboard", {
+          credentials: "include",
+        });
 
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.data) {
-            setData(result.data);
-          }
+        if (!response.ok) return;
+
+        const result = await response.json();
+        if (result.success) {
+          setData(result.data);
         }
-      } catch (error) {
-        console.error("Error fetching dashboard:", error);
       } finally {
         setIsLoading(false);
       }
@@ -92,218 +112,223 @@ export default function ProviderDashboard() {
 
   if (isLoading) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-rose-50 flex items-center justify-center'>
-        <div className='text-center'>
-          <div className='w-16 h-16 border-4 border-[#e10101] border-t-transparent rounded-full animate-spin mx-auto mb-4'></div>
-          <p className='text-gray-600'>Loading...</p>
-        </div>
+      <div className='min-h-[70vh] flex items-center justify-center'>
+        <div className='h-14 w-14 rounded-full border-4 border-red-500 border-t-transparent animate-spin' />
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-rose-50 flex items-center justify-center'>
-        <div className='text-center'>
-          <div className='text-5xl mb-4'>⚠️</div>
-          <h2 className='text-2xl font-bold text-gray-900 mb-2'>
-            Failed to load dashboard data
-          </h2>
-          <p className='text-gray-600'>Please try again later</p>
-        </div>
-      </div>
+      <div className='p-8 text-red-600'>Failed to load provider dashboard.</div>
     );
   }
 
-  console.log("data", data);
+  const orderChartMax = maxValue(data.charts.monthlyOrders);
+  const revenueChartMax = maxValue(data.charts.monthlyRevenue);
 
   return (
-    <div>
-      {/* Background decorative elements */}
-      <div className='fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20'>
-        <div className='absolute top-20 right-20 w-96 h-96 bg-red-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse' />
-        <div className='absolute bottom-20 left-20 w-96 h-96 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000' />
+    <section className='px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10'>
+      <div className='mb-8'>
+        <h1 className='text-2xl md:text-3xl font-bold text-gray-900'>
+          Provider Dashboard
+        </h1>
+        <p className='text-sm md:text-base text-gray-600 mt-1'>
+          {data.provider.restaurantName}
+        </p>
       </div>
 
-      <div className='relative z-10 max-w-7xl mx-auto px-6 py-12'>
-        {/* Header */}
-        <div className='mb-8'>
-          <h1 className='text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-[#e10101] to-red-900 bg-clip-text text-transparent mb-2'>
-            Dashboard
-          </h1>
-          <p className='text-gray-600'>{data.provider.restaurantName}</p>
-        </div>
-
-        {/* Stats Cards */}
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>
-          {/* Total Orders */}
-          <div className='bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300'>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-4'>
-                <div className='w-14 h-14 bg-gradient-to-br from-[#e10101] to-red-600 rounded-2xl flex items-center justify-center'>
-                  <svg
-                    className='w-7 h-7 text-white'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                    stroke='currentColor'>
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z'
-                    />
-                  </svg>
-                </div>
-              </div>
-              <h3 className='text-gray-500 text-sm font-medium mb-1'>
-                Total Orders
-              </h3>
-              <p className='text-3xl font-bold text-gray-900'>
-                {data?.provider?.orders?.length}
-              </p>
-            </div>
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4'>
+        <article className='rounded-2xl border border-gray-200 bg-white p-5 shadow-sm'>
+          <p className='text-sm text-gray-500'>Total Revenue</p>
+          <h3 className='mt-2 text-2xl font-bold text-gray-900'>
+            Tk {Number(data.stats.totalRevenue).toLocaleString("en-BD")}
+          </h3>
+          <div className='mt-2 inline-flex rounded-xl bg-red-50 p-2 text-red-600'>
+            <DollarSign className='h-4 w-4' />
           </div>
-
-          {/* Prnding Orders */}
-          <div className='bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300'>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-4'>
-                <div className='w-14 h-14 bg-gradient-to-br from-[#e10101] to-red-600 rounded-2xl flex items-center justify-center'>
-                  <svg
-                    className='w-7 h-7 text-white'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                    stroke='currentColor'>
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z'
-                    />
-                  </svg>
-                </div>
-              </div>
-              <h3 className='text-gray-500 text-sm font-medium mb-1'>
-                Pending Orders
-              </h3>
-              <p className='text-3xl font-bold text-gray-900'>
-                {data?.stats?.pendingOrders}
-              </p>
-            </div>
+        </article>
+        <article className='rounded-2xl border border-gray-200 bg-white p-5 shadow-sm'>
+          <p className='text-sm text-gray-500'>Pending Orders</p>
+          <h3 className='mt-2 text-2xl font-bold text-gray-900'>
+            {data.stats.pendingOrders}
+          </h3>
+          <div className='mt-2 inline-flex rounded-xl bg-orange-50 p-2 text-orange-600'>
+            <ShoppingBag className='h-4 w-4' />
           </div>
-
-          <div className='bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300'>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-4'>
-                <div className='w-14 h-14 bg-gradient-to-br from-[#e10101] to-red-600 rounded-2xl flex items-center justify-center'>
-                  <svg
-                    className='w-7 h-7 text-white'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                    stroke='currentColor'>
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z'
-                    />
-                  </svg>
-                </div>
-              </div>
-              <h3 className='text-gray-500 text-sm font-medium mb-1'>
-                Delivered Orders
-              </h3>
-              <p className='text-3xl font-bold text-gray-900'>
-                {data?.stats?.deliveredOrders}
-              </p>
-            </div>
+        </article>
+        <article className='rounded-2xl border border-gray-200 bg-white p-5 shadow-sm'>
+          <p className='text-sm text-gray-500'>Delivered Orders</p>
+          <h3 className='mt-2 text-2xl font-bold text-gray-900'>
+            {data.stats.deliveredOrders}
+          </h3>
+          <div className='mt-2 inline-flex rounded-xl bg-emerald-50 p-2 text-emerald-600'>
+            <Store className='h-4 w-4' />
           </div>
-
-          {/* Total Meals */}
-          <div className='bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300'>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-4'>
-                <div className='w-14 h-14 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center'>
-                  <svg
-                    className='w-7 h-7 text-white'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                    stroke='currentColor'>
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M12 6v6m0 0v6m0-6h6m-6 0H6'
-                    />
-                  </svg>
-                </div>
-              </div>
-              <h3 className='text-gray-500 text-sm font-medium mb-1'>
-                Total Meals
-              </h3>
-              <p className='text-3xl font-bold text-gray-900'>
-                {data?.provider?.meals?.length}
-              </p>
-            </div>
+        </article>
+        <article className='rounded-2xl border border-gray-200 bg-white p-5 shadow-sm'>
+          <p className='text-sm text-gray-500'>Active Meals</p>
+          <h3 className='mt-2 text-2xl font-bold text-gray-900'>
+            {data.stats.activeMeals}
+          </h3>
+          <div className='mt-2 inline-flex rounded-xl bg-blue-50 p-2 text-blue-600'>
+            <UtensilsCrossed className='h-4 w-4' />
           </div>
-
-          {/* Total Active Meals */}
-          <div className='bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300'>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-4'>
-                <div className='w-14 h-14 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center'>
-                  <svg
-                    className='w-7 h-7 text-white'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                    stroke='currentColor'>
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M12 6v6m0 0v6m0-6h6m-6 0H6'
-                    />
-                  </svg>
-                </div>
-              </div>
-              <h3 className='text-gray-500 text-sm font-medium mb-1'>
-                Total Active Meals
-              </h3>
-              <p className='text-3xl font-bold text-gray-900'>
-                {data?.stats?.activeMeals}
-              </p>
-            </div>
-          </div>
-
-          {/* Total Revenue */}
-          <div className='bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300'>
-            <div className='p-6'>
-              <div className='flex items-center justify-between mb-4'>
-                <div className='w-14 h-14 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center'>
-                  <svg
-                    className='w-7 h-7 text-white'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                    stroke='currentColor'>
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M12 6v6m0 0v6m0-6h6m-6 0H6'
-                    />
-                  </svg>
-                </div>
-              </div>
-              <h3 className='text-gray-500 text-sm font-medium mb-1'>
-                Total Sells
-              </h3>
-              <p className='text-3xl font-bold text-gray-900'>
-                {data?.stats?.totalRevenue}
-              </p>
-            </div>
-          </div>
-        </div>
+        </article>
       </div>
-    </div>
+
+      <div className='mt-8 grid grid-cols-1 gap-6 xl:grid-cols-3'>
+        <article className='rounded-2xl border border-gray-200 bg-white p-5 shadow-sm xl:col-span-2'>
+          <h3 className='text-lg font-semibold text-gray-900'>
+            Orders by Month (Bar)
+          </h3>
+          <div className='mt-5 grid grid-cols-6 gap-3'>
+            {data.charts.monthlyOrders.map((point) => (
+              <div
+                key={point.label}
+                className='flex flex-col items-center gap-2'>
+                <div className='flex h-36 items-end'>
+                  <div
+                    className='w-7 rounded-t-md bg-linear-to-t from-red-500 to-orange-400'
+                    style={{
+                      height: `${Math.max((point.value / orderChartMax) * 100, 8)}%`,
+                    }}
+                  />
+                </div>
+                <p className='text-xs text-gray-500'>{point.label}</p>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <Donut points={data.charts.orderStatus} title='Order Status (Donut)' />
+      </div>
+
+      <div className='mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3'>
+        <article className='rounded-2xl border border-gray-200 bg-white p-5 shadow-sm xl:col-span-2'>
+          <h3 className='text-lg font-semibold text-gray-900'>
+            Revenue Trend (Line)
+          </h3>
+          <svg viewBox='0 0 600 220' className='mt-4 h-56 w-full'>
+            {data.charts.monthlyRevenue.map((point, index) => {
+              if (index === 0) return null;
+
+              const prev = data.charts.monthlyRevenue[index - 1];
+              const x1 =
+                ((index - 1) / (data.charts.monthlyRevenue.length - 1)) * 560 +
+                20;
+              const y1 = 180 - (prev.value / revenueChartMax) * 140;
+              const x2 =
+                (index / (data.charts.monthlyRevenue.length - 1)) * 560 + 20;
+              const y2 = 180 - (point.value / revenueChartMax) * 140;
+
+              return (
+                <line
+                  key={`${point.label}-line`}
+                  x1={x1}
+                  y1={y1}
+                  x2={x2}
+                  y2={y2}
+                  stroke='#ef4444'
+                  strokeWidth='3'
+                />
+              );
+            })}
+            {data.charts.monthlyRevenue.map((point, index) => {
+              const x =
+                (index / (data.charts.monthlyRevenue.length - 1)) * 560 + 20;
+              const y = 180 - (point.value / revenueChartMax) * 140;
+              return (
+                <g key={point.label}>
+                  <circle cx={x} cy={y} r='4' fill='#ef4444' />
+                  <text
+                    x={x}
+                    y='205'
+                    textAnchor='middle'
+                    className='fill-gray-500 text-[11px]'>
+                    {point.label}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </article>
+
+        <Donut
+          points={data.charts.mealAvailability}
+          title='Meal Availability (Pie/Donut)'
+        />
+      </div>
+
+      <div className='mt-8 grid grid-cols-1 gap-6 xl:grid-cols-2'>
+        <article className='rounded-2xl border border-gray-200 bg-white p-5 shadow-sm'>
+          <h3 className='text-lg font-semibold text-gray-900'>
+            Recent Orders (Dynamic Table)
+          </h3>
+          <div className='mt-4 overflow-x-auto'>
+            <table className='min-w-full text-sm'>
+              <thead>
+                <tr className='border-b border-gray-200 text-left text-gray-500'>
+                  <th className='py-3 pr-4'>Order</th>
+                  <th className='py-3 pr-4'>Customer</th>
+                  <th className='py-3 pr-4'>Status</th>
+                  <th className='py-3 pr-4'>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.recentOrders.map((order) => (
+                  <tr key={order.id} className='border-b border-gray-100'>
+                    <td className='py-3 pr-4 font-medium text-gray-900'>
+                      #{order.id.slice(0, 8)}
+                    </td>
+                    <td className='py-3 pr-4 text-gray-700'>
+                      {order.customerName}
+                    </td>
+                    <td className='py-3 pr-4 text-gray-700'>{order.status}</td>
+                    <td className='py-3 pr-4 text-gray-700'>
+                      Tk {order.totalPrice.toLocaleString("en-BD")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article className='rounded-2xl border border-gray-200 bg-white p-5 shadow-sm'>
+          <h3 className='text-lg font-semibold text-gray-900'>
+            Top Meals (Dynamic Table)
+          </h3>
+          <div className='mt-4 overflow-x-auto'>
+            <table className='min-w-full text-sm'>
+              <thead>
+                <tr className='border-b border-gray-200 text-left text-gray-500'>
+                  <th className='py-3 pr-4'>Meal</th>
+                  <th className='py-3 pr-4'>Category</th>
+                  <th className='py-3 pr-4'>Orders</th>
+                  <th className='py-3 pr-4'>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.topMeals.map((meal) => (
+                  <tr key={meal.id} className='border-b border-gray-100'>
+                    <td className='py-3 pr-4 font-medium text-gray-900'>
+                      {meal.title}
+                    </td>
+                    <td className='py-3 pr-4 text-gray-700'>{meal.category}</td>
+                    <td className='py-3 pr-4 text-gray-700'>
+                      {meal.totalOrders}
+                    </td>
+                    <td className='py-3 pr-4 text-gray-700'>
+                      Tk {meal.price.toLocaleString("en-BD")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+    </section>
   );
 }
